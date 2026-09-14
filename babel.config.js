@@ -1,14 +1,13 @@
-// The reanimated plugin MUST be the last entry in the plugins array.
+// The worklets plugin MUST be the last entry in the plugins array.
 //
-// NOTE for setup: on newer Expo SDKs this plugin moved to
-// 'react-native-worklets/plugin'. If `npx expo start` prints a warning telling
-// you the plugin has moved or is no longer required, follow what it says --
-// either swap the string below or delete the plugins array entirely.
-// Everything else in this file stays as it is.
+// SDK 57 ships Reanimated 4, whose Babel plugin lives in
+// 'react-native-worklets/plugin' (the old 'react-native-reanimated/plugin'
+// re-exports it with a deprecation warning). Verified against
+// react-native-worklets 0.10.4 / react-native-reanimated 4.5.1.
 module.exports = function (api) {
   api.cache(true);
   return {
     presets: ['babel-preset-expo'],
-    plugins: ['react-native-reanimated/plugin'],
+    plugins: ['react-native-worklets/plugin'],
   };
 };

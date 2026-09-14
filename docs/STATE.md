@@ -7,15 +7,25 @@ anything else, it wins.
 
 ## Where we are
 
-**Stage 00 · Rails — code complete, NOT YET VERIFIED ON A DEVICE.**
+**Stage 00 · Rails — VERIFIED (compiles + bundles). Device boot still pending.**
 
-Nothing has been installed or run. The cloud session that wrote this had its
-npm registry access blocked by egress policy (403 on every package), so no
-`npm install`, no typecheck, and no device boot happened. The source is written
-against the spec but has never been compiled.
+Installed and built on the local machine against **Expo SDK 57**, Node 24.19.
+`tsc --noEmit` is clean and `expo export --platform android` produces a 3.8MB
+bundle with exit 0 — so Babel (worklets plugin) and the `@/*` Metro alias both
+resolve every file. Three SDK-57 fixes were needed and made (see below).
 
-**The immediate next action is the setup in `SETUP.md`.** Until it boots, treat
-stage 00 as unproven.
+**The one thing left for stage 00 is the on-device visual check** — Archivo
+renders at every role, palette is right, coins survive a force-quit, tap
+targets feel right. That needs a phone with Expo Go: `npx expo start`, scan the
+QR. Everything a machine can check has passed.
+
+### SDK-57 fixes applied during verification
+- `tsconfig.json` — removed `baseUrl` (deprecated in the TS 6 this SDK pulls;
+  `paths` resolves without it).
+- `app/_layout.tsx` — dropped `backgroundColor` from `<StatusBar>`; SDK 57 makes
+  Android edge-to-edge default and removed the prop. Safe-area padding covers it.
+- `babel.config.js` — switched to `react-native-worklets/plugin` for Reanimated
+  4.5.1 / worklets 0.10.4.
 
 ---
 
@@ -70,9 +80,9 @@ stage 00 as unproven.
 
 ## Next action
 
-1. Run `npm run setup` in the repo root (see `SETUP.md`).
-2. `npx expo start`, open on an Android phone.
-3. Check the four things the rails screen exists to prove: Archivo renders at
-   every role, the palette is right, force-quitting and reopening keeps the
-   coins, and the two action rows are comfortably tappable.
-4. Report what broke. Then stage 01.
+- **You:** `npx expo start` from the repo root, scan the QR with Expo Go on an
+  Android phone, and check the four things the rails screen proves — Archivo at
+  every role, palette right, coins survive a force-quit, action rows tappable.
+- **In progress:** stage 01 — the fourteen routes, four chrome variants and the
+  eleven UI-spec §6 components. The rails screen (`app/index.tsx`) gets deleted
+  as part of it.
