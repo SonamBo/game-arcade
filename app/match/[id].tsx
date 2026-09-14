@@ -15,7 +15,8 @@ import type { LayoutChangeEvent } from 'react-native';
 
 import { MatchChrome } from '@/components/chrome/MatchChrome';
 import { getGameComponent, getGameMeta } from '@/games/registry';
-import { SAMPLE_GAMES } from '@/data/samples';
+import { metaFor } from '@/data/catalogue';
+import { globalRivalFor } from '@/data/seed';
 import { track } from '@/lib/analytics';
 import { useStore } from '@/store';
 import { C, T } from '@/theme/tokens';
@@ -31,13 +32,13 @@ export default function Match() {
   const carriedScore = carry ? Math.max(0, parseInt(carry, 10) || 0) : 0;
   const runSource = (source as RunSource) ?? 'shelf';
 
-  // Unit and score direction come from the game's own metadata (registry);
-  // the rival/ghost is still sample-derived until the social layer (stage 06).
-  const meta = getGameMeta(gameId);
-  const sample = SAMPLE_GAMES.find((g) => g.id === gameId);
-  const rivalHandle = sample?.rival?.handle ?? 'KOJI';
-  const ghostTarget = sample?.rival ? (sample.best ?? 0) + sample.rival.by : undefined;
-  const unit = meta?.unit ?? sample?.unit ?? 'blocks';
+  // Unit and score direction come from the game's own metadata; the rival/ghost
+  // is the deterministic cold-start global rival until the social layer (stage 06).
+  const meta = getGameMeta(gameId) ?? metaFor(gameId);
+  const rival = globalRivalFor(gameId);
+  const rivalHandle = rival.handle;
+  const ghostTarget = rival.score;
+  const unit = meta?.unit ?? 'blocks';
   const lowerIsBetter = meta?.lowerIsBetter ?? false;
 
   const getProgress = useStore((s) => s.getProgress);

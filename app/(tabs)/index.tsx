@@ -1,10 +1,11 @@
 /**
  * 02 · Home — the ranked shelf. Four bands: the daily drop poster, three
  * editorial "ranked for you" rows (reason lines on the top three only), the
- * pinned games as a 2-up grid, and a footer that opens Browse.
+ * remaining pinned games as a 2-up grid, and a footer that opens Browse.
  *
- * Ranking is illustrative here; the real rankScore()-ordered shelf lands at
- * stage 05 when the catalogue exists.
+ * Ranking is the shared rankInputs() path — the same one the auto-queue uses —
+ * so the shelf and the queue can never disagree (build brief §5). Rival-ahead
+ * first, then never-played, ties broken by friends-on.
  */
 import { router } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
@@ -14,13 +15,21 @@ import { EditorialRow } from '@/components/ui/EditorialRow';
 import { PosterBand } from '@/components/ui/PosterBand';
 import { BandHeader, Button, Rule } from '@/components/ui/primitives';
 import { ShelfGrid, ShelfRow, ShelfTile } from '@/components/ui/ShelfTile';
-import { SAMPLE_DROP, SAMPLE_GAMES } from '@/data/samples';
+import { GAME_COUNT } from '@/data/catalogue';
+import { rankInputs } from '@/data/seed';
+import { SAMPLE_DROP } from '@/data/samples';
+import { useStore } from '@/store';
 import { C, S } from '@/theme/tokens';
 import { text } from '@/theme/type';
+import { reasonLine } from '@/types/models';
 
 export default function Home() {
-  const ranked = SAMPLE_GAMES.slice(0, 3);
-  const pinned = SAMPLE_GAMES.filter((g) => g.pinned);
+  const pinnedOrder = useStore((s) => s.pinnedOrder);
+  const progress = useStore((s) => s.progress);
+
+  const ranked = rankInputs(pinnedOrder, progress);
+  const editorial = ranked.slice(0, 3);
+  const grid = ranked.slice(3, 12);
 
   const openGame = (id: string) => router.navigate(`/game/${id}`);
 
@@ -28,51 +37,52 @@ export default function Home() {
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <TopBar />
       <ScrollView contentContainerStyle={{ paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
-        <PosterBand data={SAMPLE_DROP} onPlay={() => openGame('stack')} onSecondary={() => router.navigate('/drop')} />
+        <PosterBand data={SAMPLE_DROP} onPlay={() => router.navigate('/match/stack?source=poster')} onSecondary={() => router.navigate('/drop')} />
 
         <BandHeader kicker="Ranked for you" />
-        {ranked.map((g) => (
-          <EditorialRow
-            key={g.id}
-            code={g.code}
-            name={g.name}
-            meta={`${g.family} · ${g.runs} runs`}
-            reason={
-              g.rival
-                ? `${g.rival.handle} BEAT YOU BY ${g.rival.by}`
-                : g.neverPlayed
-                  ? `${g.friendsOn} FRIENDS PLAY THIS · YOU NEVER HAVE`
-                  : `QUEST 1/3 · ${g.friendsOn} FRIENDS ON TODAY`
-            }
-            best={g.best}
-            unit={g.unit}
-            neverPlayed={g.neverPlayed}
-            onPress={() => openGame(g.id)}
-          />
-        ))}
+        {editorial.map((ri) => {
+          const runs = progress[ri.game.id]?.runs ?? 0;
+          return (
+            <EditorialRow
+              key={ri.game.id}
+              code={ri.game.code}
+              name={ri.game.name}
+              meta={ri.neverPlayed ? `${ri.game.family} · never played` : `${ri.game.family} · ${runs} runs`}
+              reason={reasonLine(ri)}
+              best={ri.neverPlayed ? null : ri.best ?? null}
+              unit={ri.game.unit}
+              neverPlayed={ri.neverPlayed}
+              onPress={() => openGame(ri.game.id)}
+            />
+          );
+        })}
 
-        <BandHeader kicker="Your shelf" />
-        <ShelfGrid>
-          {chunk(pinned, 2).map((row, i) => (
-            <ShelfRow key={i}>
-              {row.map((g) => (
-                <ShelfTile
-                  key={g.id}
-                  name={g.name}
-                  family={g.family}
-                  best={g.best}
-                  unit={g.unit}
-                  onPress={() => openGame(g.id)}
-                  onLongPress={() => router.navigate('/browse')}
-                />
+        {grid.length > 0 ? (
+          <>
+            <BandHeader kicker="Your shelf" />
+            <ShelfGrid>
+              {chunk(grid, 2).map((row, i) => (
+                <ShelfRow key={i}>
+                  {row.map((ri) => (
+                    <ShelfTile
+                      key={ri.game.id}
+                      name={ri.game.name}
+                      family={ri.game.family}
+                      best={ri.neverPlayed ? null : ri.best ?? null}
+                      unit={ri.game.unit}
+                      onPress={() => openGame(ri.game.id)}
+                      onLongPress={() => router.navigate('/browse')}
+                    />
+                  ))}
+                  {row.length === 1 ? <View style={{ flex: 1, backgroundColor: C.bg }} /> : null}
+                </ShelfRow>
               ))}
-              {row.length === 1 ? <View style={{ flex: 1, backgroundColor: C.bg }} /> : null}
-            </ShelfRow>
-          ))}
-        </ShelfGrid>
+            </ShelfGrid>
+          </>
+        ) : null}
 
         <View style={{ paddingHorizontal: S.inset, paddingTop: 22, gap: 10 }}>
-          <Button label="Browse 28 more" variant="outlined" full onPress={() => router.navigate('/browse')} />
+          <Button label={`Browse ${Math.max(0, GAME_COUNT - pinnedOrder.length)} more`} variant="outlined" full onPress={() => router.navigate('/browse')} />
           <Text style={text('meta', { color: C.n600 })}>Long-press any game to pin or unpin.</Text>
         </View>
 

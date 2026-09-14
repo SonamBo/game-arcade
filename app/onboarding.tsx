@@ -1,12 +1,11 @@
 /**
  * 01 · Onboarding — "Pick your three". One screen, no account, no carousel.
- * Kicker "STEP 1 OF 1 · 40 GAMES INSIDE", a 38px headline, one line of
- * explanation, then a 3-up grid of twelve games. Tapping a tile inverts it to
- * accent. The primary button reads "PICK n MORE" until three are chosen, then
- * accent "BUILD MY SHELF →". An underlined skip drops straight into STACK.
+ * A 3-up grid of twelve games; tapping a tile inverts it to accent. The primary
+ * button reads "PICK n MORE" until three are chosen, then "BUILD MY SHELF →".
+ * An underlined skip drops straight into a game.
  *
- * The three picks seed the twelve pinned slots; the other nine fill by
- * popularity (stage 05). Never block the skip.
+ * The three picks seed the twelve pinned slots; the other nine are filled by
+ * popularity (build brief §5 / UI spec §01). Never block the skip.
  */
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -14,25 +13,28 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/primitives';
+import { GAMES } from '@/data/catalogue';
+import { popularityOrder } from '@/data/seed';
 import { useStore } from '@/store';
-import { SAMPLE_GAMES } from '@/data/samples';
+import { PIN_CAP } from '@/types/models';
 import { C, MIN_TAP, S, T } from '@/theme/tokens';
 import { text } from '@/theme/type';
 
-// Twelve to choose from — a slice of the eventual forty.
-const CHOICES = [...SAMPLE_GAMES, ...SAMPLE_GAMES].slice(0, 12).map((g, i) => ({ ...g, key: `${g.id}-${i}` }));
+const CHOICES = GAMES.slice(0, 12);
 
 export default function Onboarding() {
   const insets = useSafeAreaInsets();
   const completeOnboarding = useStore((s) => s.completeOnboarding);
   const [picked, setPicked] = useState<string[]>([]);
 
-  const toggle = (key: string) => {
-    setPicked((p) => (p.includes(key) ? p.filter((k) => k !== key) : p.length < 3 ? [...p, key] : p));
+  const toggle = (id: string) => {
+    setPicked((p) => (p.includes(id) ? p.filter((k) => k !== id) : p.length < 3 ? [...p, id] : p));
   };
 
-  const finish = (ids: string[]) => {
-    completeOnboarding(ids);
+  const finish = (picks: string[]) => {
+    // Seed the twelve pinned slots: the picks, then fill by popularity.
+    const twelve = [...picks, ...popularityOrder(picks)].slice(0, PIN_CAP);
+    completeOnboarding(twelve);
     router.replace('/');
   };
 
@@ -41,7 +43,7 @@ export default function Onboarding() {
   return (
     <View style={{ flex: 1, backgroundColor: C.bg, paddingTop: insets.top }}>
       <ScrollView contentContainerStyle={{ padding: S.inset, paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
-        <Text style={text('kicker', { color: C.accentDeep })}>Step 1 of 1 · 40 games inside</Text>
+        <Text style={text('kicker', { color: C.accentDeep })}>Step 1 of 1 · {GAMES.length} games inside</Text>
         <Text style={{ fontFamily: T.display.fontFamily, fontSize: 38, letterSpacing: -1.4, color: C.text, marginTop: 8 }}>
           PICK YOUR THREE.
         </Text>
@@ -51,11 +53,11 @@ export default function Onboarding() {
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', backgroundColor: C.divider, gap: S.gap, marginTop: 18 }}>
           {CHOICES.map((g) => {
-            const on = picked.includes(g.key);
+            const on = picked.includes(g.id);
             return (
               <Pressable
-                key={g.key}
-                onPress={() => toggle(g.key)}
+                key={g.id}
+                onPress={() => toggle(g.id)}
                 style={{ width: '32.6%', minHeight: 74, backgroundColor: on ? C.accent : C.bg, padding: 10, justifyContent: 'space-between' }}
               >
                 <Text style={text('rowTitle', { color: on ? C.bg : C.text })}>{g.name}</Text>

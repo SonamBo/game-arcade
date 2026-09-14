@@ -1,9 +1,10 @@
 /**
  * 04 · Game detail. A 96px ink code block beside the title (family · plays
- * today, name, one-line rule), a three-cell stat strip (YOUR BEST · FRIEND RANK
- * · RUNS), the ghost duel band, a leaderboard with FRIENDS / GLOBAL / THIS WEEK,
- * a daily-quest row with its coin value in accent, and a full-width PLAY button
- * that closes the screen into a run.
+ * today, name, one-line rule), a three-cell stat strip, the ghost duel band, a
+ * leaderboard, a daily-quest row, and a full-width PLAY button.
+ *
+ * Works for any of the forty. A game the player has never touched shows a named
+ * GLOBAL RIVAL on the ghost band — never an empty screen, never a fake friend.
  */
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -15,49 +16,68 @@ import { LeaderboardRow } from '@/components/ui/LeaderboardRow';
 import { BandHeader, Button, Rule } from '@/components/ui/primitives';
 import { Segmented } from '@/components/ui/Segmented';
 import { StatStrip } from '@/components/ui/StatStrip';
-import { getGameMeta, isPlayableId } from '@/games/registry';
-import { SAMPLE_GAMES, SAMPLE_LEADERBOARD } from '@/data/samples';
+import { metaFor } from '@/data/catalogue';
+import { friendsOn, globalRivalFor } from '@/data/seed';
+import { isPlayableId } from '@/games/registry';
+import { SAMPLE_LEADERBOARD } from '@/data/samples';
+import { useStore } from '@/store';
 import { C, S, T } from '@/theme/tokens';
 import { text } from '@/theme/type';
 
 export default function GameDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const game = SAMPLE_GAMES.find((g) => g.id === id) ?? SAMPLE_GAMES[0];
-  const meta = getGameMeta(game.id);
+  const gameId = String(id ?? 'stack');
+  const meta = metaFor(gameId);
+  const progress = useStore((s) => s.getProgress(gameId));
   const [board, setBoard] = useState('FRIENDS');
-  const playable = isPlayableId(game.id);
+
+  if (!meta) {
+    return (
+      <View style={{ flex: 1, backgroundColor: C.bg }}>
+        <BackBar label="Not found" />
+        <View style={{ padding: S.inset }}>
+          <Text style={text('body', { color: C.n700 })}>No game with id “{gameId}”.</Text>
+        </View>
+      </View>
+    );
+  }
+
+  const playable = isPlayableId(gameId);
+  const rival = globalRivalFor(gameId);
+  const played = progress.runs > 0;
+  const rivalAhead = played && (meta.lowerIsBetter ? rival.score < progress.best : rival.score > progress.best);
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <BackBar label={game.name} />
+      <BackBar label={meta.name} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 28 }}>
         {/* title block */}
         <View style={{ flexDirection: 'row', gap: 14, padding: S.inset }}>
           <View style={{ width: 96, height: 96, backgroundColor: C.text, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={text('title', { color: C.bg })}>{game.code}</Text>
+            <Text style={text('title', { color: C.bg })}>{meta.code}</Text>
           </View>
           <View style={{ flex: 1, justifyContent: 'center' }}>
-            <Text style={text('kicker', { color: C.n600 })}>{game.family} · {game.friendsOn} playing today</Text>
-            <Text style={{ fontFamily: T.title.fontFamily, fontSize: 30, letterSpacing: -0.9, color: C.text, marginTop: 2 }}>{game.name}</Text>
-            <Text style={[text('meta', { color: C.n700 }), { marginTop: 4 }]}>{meta?.blurb ?? 'A quick one. Beat the number.'}</Text>
+            <Text style={text('kicker', { color: C.n600 })}>{meta.family} · {friendsOn(gameId)} playing today</Text>
+            <Text style={{ fontFamily: T.title.fontFamily, fontSize: 30, letterSpacing: -0.9, color: C.text, marginTop: 2 }}>{meta.name}</Text>
+            <Text style={[text('meta', { color: C.n700 }), { marginTop: 4 }]}>{meta.blurb}</Text>
           </View>
         </View>
 
         <StatStrip
           cells={[
-            { kicker: 'Your best', value: game.best ?? '—' },
-            { kicker: 'Friend rank', value: game.rival ? '#3' : '#1' },
-            { kicker: 'Runs', value: game.runs },
+            { kicker: 'Your best', value: played ? progress.best : '—' },
+            { kicker: 'Friend rank', value: rivalAhead ? '#3' : '#1' },
+            { kicker: 'Runs', value: progress.runs },
           ]}
         />
 
         <View style={{ height: S.rule }} />
         <GhostBand
-          handle={game.rival?.handle ?? 'KOJI'}
-          score={game.best ? game.best + (game.rival?.by ?? 5) : 40}
-          unit={game.unit}
-          state={game.rival ? 'rival-ahead' : 'global-rival'}
-          onRace={() => router.navigate(`/match/${game.id}`)}
+          handle={rival.handle}
+          score={rival.score}
+          unit={meta.unit}
+          state={rivalAhead ? 'rival-ahead' : 'global-rival'}
+          onRace={() => router.navigate(`/match/${gameId}?source=duel`)}
         />
 
         <BandHeader kicker="Leaderboard" />
@@ -74,7 +94,17 @@ export default function GameDetail() {
         <Rule />
 
         <View style={{ padding: S.inset }}>
-          <Button label={playable ? 'Play' : `Play ${game.name} (simulated)`} variant="accent" full onPress={() => router.navigate(`/match/${game.id}`)} />
+          <Button
+            label={playable ? 'Play' : `${meta.name} — coming soon`}
+            variant="accent"
+            full
+            onPress={() => (playable ? router.navigate(`/match/${gameId}?source=shelf`) : undefined)}
+          />
+          {!playable ? (
+            <Text style={[text('meta', { color: C.n600 }), { marginTop: 8 }]}>
+              This game arrives with its engine in a later drop.
+            </Text>
+          ) : null}
         </View>
       </ScrollView>
     </View>

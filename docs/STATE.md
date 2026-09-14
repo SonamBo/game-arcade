@@ -7,22 +7,40 @@ anything else, it wins.
 
 ## Where we are
 
-**Stage 04 · Engines and the scaffold — VERIFIED (compiles + bundles). Device
-play pass still pending. THE CONTRACT IS FROZEN.**
+**Stage 05 · Catalogue, shelf, browse — VERIFIED (compiles + bundles). Device
+pass still pending.**
 
 `tsc --noEmit` is clean and `expo export --platform android` bundles with exit
-0, including three Reanimated engines and the resolver. Built on **Expo SDK 57**,
-Node 24.19.
+0. Built on **Expo SDK 57**, Node 24.19.
 
-The multiplier is real: REFLEX and DODGE now play from **config alone** (no
-bespoke code), and a sixth game (GLIDE) was added end-to-end by
-`npm run new-game` touching one file, then typechecked clean. Stages 00–03 are
-verified and committed.
+All forty games exist as data now, the home shelf is ranked by the shared
+ranking path (the same one the auto-queue uses), Browse lists all forty with
+family filters + keyword search + real long-press pinning capped at twelve, and
+a fresh install shows a named GLOBAL RIVAL and a reason line on every top-three
+row. Stages 00–04 are verified and committed.
 
 **Left to do on the device** (needs a phone + Expo Go, `npx expo start`):
-- play REFLEX, DODGE (button-first lanes), SNAP, AIM, GLIDE — all from config.
-  Watch DODGE/GLIDE with many obstacles for 60fps (the pooled-worklet claim).
-- everything from stages 02–03 (STACK feel, the live auto-queue, near-miss retry).
+- fresh install → onboarding picks 3, shelf fills to 12; check reason lines on
+  the top three and that Browse shows 40 with working filter/search.
+- long-press to pin/unpin; pin a 13th → "SHELF FULL — UNPIN ONE FIRST" toast.
+- the six playable games (STACK, REFLEX, DODGE, SNAP, AIM, GLIDE); non-playable
+  games open a detail screen with a named rival and a "coming soon" play button.
+- carried over: 60fps on DODGE/GLIDE, the live auto-queue, near-miss retry.
+
+### What stage 05 delivered
+- **`data/catalogue.ts`** — all forty games as metadata. Playable games source
+  their meta from their module (one source of truth); the other 34 are inline
+  until their engines land. `metaFor`, `GAMES`, `ORDER`, `GAME_COUNT`.
+- **`data/seed.ts`** — deterministic cold-start: `friendsOn`, one named
+  `globalRivalFor` per game, baselines, and `rankInputs` / `rankedGames` /
+  `nextQueued` — the single ranking path used by **both** the shelf and the
+  queue. Full social layer (23 friends, feed, head-to-head) is still stage 06.
+- **home** ranks the pinned shelf (top 3 editorial + reason lines, next 9 grid,
+  BROWSE N MORE); **browse** lists all forty (family filter, keyword search,
+  numbered index, real pin toggle + refusal toast); **onboarding** fills to 12
+  by popularity; **results queue**, **game detail**, **match** now read
+  catalogue meta + the seeded rival, so all forty have a rival and a ghost.
+- Feed/duels/me/friend/inbox still read `data/samples.ts` (stage 06).
 
 ### What stage 04 delivered
 - **Contract frozen** (`games/types.ts`), component model: bespoke `Component`

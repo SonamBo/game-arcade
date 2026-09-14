@@ -22,56 +22,28 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { QueueRing } from '@/components/ui/QueueRing';
 import { Button, Rule } from '@/components/ui/primitives';
 import { StatStrip } from '@/components/ui/StatStrip';
-import { SAMPLE_GAMES } from '@/data/samples';
+import { metaFor } from '@/data/catalogue';
+import { globalRivalFor, nextQueued } from '@/data/seed';
 import { reasonType, track } from '@/lib/analytics';
 import { useStore } from '@/store';
 import { C, S, T } from '@/theme/tokens';
 import { text } from '@/theme/type';
-import { compareRank, nextInQueue, reasonLine } from '@/types/models';
-import type { Game, RankInput } from '@/types/models';
-
-/** The first ranked game that is not the one just played. */
-function nextRanked(excludeId: string) {
-  const ranked: RankInput[] = SAMPLE_GAMES.map((g) => {
-    const game: Game = {
-      id: g.id,
-      name: g.name,
-      code: g.code,
-      family: g.family,
-      unit: g.unit,
-      lowerIsBetter: false,
-      playable: g.id === 'stack',
-      blurb: '',
-    };
-    return {
-      game,
-      rivalAhead: !!g.rival,
-      neverPlayed: !!g.neverPlayed,
-      friendsOn: g.friendsOn,
-      rivalHandle: g.rival?.handle,
-      rivalScore: g.rival ? (g.best ?? 0) + g.rival.by : undefined,
-      best: g.best ?? 0,
-    };
-  });
-  ranked.sort(compareRank);
-  const pick = nextInQueue(ranked, excludeId) ?? ranked[0];
-  return {
-    id: pick.game.id,
-    name: pick.game.name,
-    reason: reasonLine(pick),
-    reasonType: reasonType(pick.rivalAhead, pick.neverPlayed),
-  };
-}
+import { reasonLine } from '@/types/models';
 
 export default function Results() {
   const insets = useSafeAreaInsets();
   const run = useStore((s) => s.lastRun);
+  const progress = useStore((s) => s.progress);
   const getProgress = useStore((s) => s.getProgress);
   const freeRetriesLeft = useStore((s) => s.wallet.freeRetriesLeft);
   const takeRetry = useStore((s) => s.takeRetry);
   const shownAt = useRef(Date.now());
 
-  const next = run ? nextRanked(run.gameId) : null;
+  // The queue's next game comes from the same ranking path the shelf uses.
+  const pick = run ? nextQueued(progress, run.gameId) : undefined;
+  const next = pick
+    ? { id: pick.game.id, name: pick.game.name, reason: reasonLine(pick), reasonType: reasonType(pick.rivalAhead, pick.neverPlayed) }
+    : null;
 
   useEffect(() => {
     if (next) track({ name: 'queue_shown', next_game: next.id, reason_type: next.reasonType, seconds_elapsed: 0 });
@@ -88,10 +60,10 @@ export default function Results() {
     );
   }
 
-  const game = SAMPLE_GAMES.find((g) => g.id === run.gameId);
-  const name = game?.name ?? run.gameId.toUpperCase();
-  const rival = game?.rival?.handle ?? 'KOJI';
-  const ghost = game?.rival ? (game.best ?? 0) + game.rival.by : undefined;
+  const name = metaFor(run.gameId)?.name ?? run.gameId.toUpperCase();
+  const rivalSeed = globalRivalFor(run.gameId);
+  const rival = rivalSeed.handle;
+  const ghost = rivalSeed.score;
   const best = getProgress(run.gameId).best;
 
   const headline = run.improved

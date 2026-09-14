@@ -100,7 +100,7 @@ lane-runner, target-tap — covering 21 of 40 slots; the other five engines are 
 batches, built when their games exist (hazard #1). The framework makes each a drop-in.*
 *Done when:* REFLEX and DODGE play from config alone; a new game adds in one file. ✓
 
-**05 · Catalogue, shelf, browse** — forty games as data, one ranking function used by
+**05 · Catalogue, shelf, browse** ✓ — forty games as data, one ranking function used by
 both shelf and queue, reason lines on top three only, drop poster, family filters,
 search, long-press pinning capped at twelve with the refusal toast.
 *Done when:* a fresh install shows a named global rival and a reason line on every top-three row.
