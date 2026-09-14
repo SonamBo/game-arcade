@@ -7,25 +7,33 @@ anything else, it wins.
 
 ## Where we are
 
-**Stage 00 · Rails — VERIFIED (compiles + bundles). Device boot still pending.**
+**Stage 01 · Shell and eleven components — VERIFIED (compiles + bundles).
+Device visual pass still pending.**
 
-Installed and built on the local machine against **Expo SDK 57**, Node 24.19.
-`tsc --noEmit` is clean and `expo export --platform android` produces a 3.8MB
-bundle with exit 0 — so Babel (worklets plugin) and the `@/*` Metro alias both
-resolve every file. Three SDK-57 fixes were needed and made (see below).
+`tsc --noEmit` is clean across all fourteen routes and eleven components, and
+`expo export --platform android` bundles with exit 0. Built on **Expo SDK 57**,
+Node 24.19.
 
-**The one thing left for stage 00 is the on-device visual check** — Archivo
-renders at every role, palette is right, coins survive a force-quit, tap
-targets feel right. That needs a phone with Expo Go: `npx expo start`, scan the
-QR. Everything a machine can check has passed.
+Stage 00 is fully verified and committed (`cd9a8a7`); its three SDK-57 fixes are
+recorded in DECISIONS. The rails-check screen has been deleted.
 
-### SDK-57 fixes applied during verification
-- `tsconfig.json` — removed `baseUrl` (deprecated in the TS 6 this SDK pulls;
-  `paths` resolves without it).
-- `app/_layout.tsx` — dropped `backgroundColor` from `<StatusBar>`; SDK 57 makes
-  Android edge-to-edge default and removed the prop. Safe-area padding covers it.
-- `babel.config.js` — switched to `react-native-worklets/plugin` for Reanimated
-  4.5.1 / worklets 0.10.4.
+**Left to do on the device** (needs a phone + Expo Go, `npx expo start`):
+- walk the five tabs and the pushed screens; confirm chrome matches the spec
+- open `/gallery` and eyeball all eleven components in every state
+- confirm Archivo renders, palette is right, tap targets feel ≥48px
+
+### What stage 01 delivered
+- **Chrome:** `TopBar`, `BackBar`, `MatchChrome`, and the five-tab bar (custom
+  render prop in `app/(tabs)/_layout.tsx`, with the onboarding redirect gate).
+- **Eleven §6 components** in `components/ui/`: PosterBand, EditorialRow,
+  ShelfTile (+grid), IndexRow, StatStrip, GhostBand, LeaderboardRow, FeedPost,
+  QueueRing, NotificationRow, ToastStrip — each with its listed states. Plus
+  shared `primitives.tsx` (Button ×3 variants, rules, accent square/dot) and
+  `Segmented`.
+- **Fourteen routes:** onboarding; the five tabs (index/Home, feed, duels, shop,
+  me); and pushed browse, game/[id], match/[id], results, drop, bracket,
+  friend/[handle], inbox. Plus a dev-only `/gallery`.
+- `data/samples.ts` — placeholder content (see DECISIONS D-010).
 
 ---
 
@@ -53,10 +61,13 @@ QR. Everything a machine can check has passed.
 
 ## Not done
 
-- Nothing has been installed, compiled, or run.
-- No screens, no chrome, no tab bar. That is stage 01.
-- `data/catalogue.ts` is not written yet — stage 05.
+- No real games yet — `match/[id]` is a placeholder field that jumps to results.
+  The run loop and STACK are stage 02.
 - The nine engines do not exist — stage 04.
+- `data/catalogue.ts` (forty real games) and `data/seed.ts` (23 friends) are
+  stage 05 / 06; screens currently read `data/samples.ts`.
+- Screens are wired with sample data and illustrative navigation; ranking,
+  pinning persistence and the derived feed become real in stages 05–06.
 
 ---
 

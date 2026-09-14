@@ -51,6 +51,25 @@ lists its input as two lane buttons plus arrow keys, with no swipe, and §05
 describes only the button strip. The UI spec wins by its own stated rule.
 *Open:* flagged to Sonu, not yet confirmed.
 
+### D-009 · Tab bar is custom, typed against a local prop shape
+**Stage 01.** The five-tab bar is a custom `tabBar` render prop on expo-router's
+`Tabs`, not the default bar — the spec's flush-left labels and accent-rule-on-top
+active state need it. `@react-navigation/bottom-tabs` does not resolve as a
+direct type import under Expo Router v6, so the render props are typed against a
+minimal local `TabBarShape` covering only what we read.
+
+### D-010 · Stage 01 renders sample data, not the catalogue
+**Stage 01.** `data/samples.ts` holds a handful of hand-written games, friends,
+duels, feed posts and notifications so the eleven components and fourteen
+screens render faithfully. It is clearly marked placeholder and is superseded by
+`data/catalogue.ts` (stage 05) and `data/seed.ts` (stage 06). No screen assumes
+these rows are real.
+
+### D-011 · The queue ring is a real circle
+**Stage 01.** The zero-radius rule is about rectangles; the §06 auto-queue ring
+is a genuine countdown dial, so `QueueRing` uses a circular border. The conic
+sweep and live countdown animate in stage 03, driven by the run loop.
+
 ### D-008 · The rails screen is disposable
 **Stage 00.** `app/index.tsx` is a diagnostic, not a product screen, and stage
 01 deletes it. It is written in the product's visual grammar anyway so that a
