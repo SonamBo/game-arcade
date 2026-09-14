@@ -93,9 +93,12 @@ haptics). STACK bespoke against it with the §6 tuning. Produces a real `Run` re
 then 50 coins, retry resuming at the score reached.
 *Done when:* run ends to next run begins unattended in 3s; cancel never fails.
 
-**04 · Engines and the scaffold** — all nine engines, config schema, `npm run new-game`,
-`games/README.md`. REFLEX and DODGE rebuilt as pure configs. **Contract freezes here.**
-*Done when:* REFLEX and DODGE play from config alone; a tenth game adds in one file.
+**04 · Engines and the scaffold** — the engine framework, config schema,
+`npm run new-game`, `games/README.md`. REFLEX and DODGE rebuilt as pure configs. **Contract
+freezes here.** *Revised (see DECISIONS D-016): ships three engines — needle-band,
+lane-runner, target-tap — covering 21 of 40 slots; the other five engines are stage-09
+batches, built when their games exist (hazard #1). The framework makes each a drop-in.*
+*Done when:* REFLEX and DODGE play from config alone; a new game adds in one file. ✓
 
 **05 · Catalogue, shelf, browse** — forty games as data, one ranking function used by
 both shelf and queue, reason lines on top three only, drop poster, family filters,

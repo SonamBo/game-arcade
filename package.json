@@ -7,6 +7,7 @@
     "setup": "expo install expo-router react-native react-dom react-native-safe-area-context react-native-screens expo-linking expo-constants expo-status-bar expo-haptics expo-font @expo-google-fonts/archivo react-native-reanimated react-native-gesture-handler @react-native-async-storage/async-storage && npm i zustand && expo install --fix",
     "start": "expo start",
     "android": "expo run:android",
+    "new-game": "node scripts/new-game.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

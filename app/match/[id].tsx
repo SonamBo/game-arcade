@@ -14,7 +14,7 @@ import { Pressable, Text, View } from 'react-native';
 import type { LayoutChangeEvent } from 'react-native';
 
 import { MatchChrome } from '@/components/chrome/MatchChrome';
-import { getGameComponent } from '@/games/registry';
+import { getGameComponent, getGameMeta } from '@/games/registry';
 import { SAMPLE_GAMES } from '@/data/samples';
 import { track } from '@/lib/analytics';
 import { useStore } from '@/store';
@@ -22,10 +22,6 @@ import { C, T } from '@/theme/tokens';
 import { text } from '@/theme/type';
 import { coinsFor, isNearMiss } from '@/types/models';
 import type { Run, RunSource } from '@/types/models';
-
-// Higher-is-better for every stage-02 game. The catalogue carries the real flag
-// per game from stage 05; STACK is higher-is-better.
-const LOWER_IS_BETTER: Record<string, boolean> = {};
 
 export default function Match() {
   const { id, carry, source } = useLocalSearchParams<{ id: string; carry?: string; source?: string }>();
@@ -35,11 +31,14 @@ export default function Match() {
   const carriedScore = carry ? Math.max(0, parseInt(carry, 10) || 0) : 0;
   const runSource = (source as RunSource) ?? 'shelf';
 
+  // Unit and score direction come from the game's own metadata (registry);
+  // the rival/ghost is still sample-derived until the social layer (stage 06).
+  const meta = getGameMeta(gameId);
   const sample = SAMPLE_GAMES.find((g) => g.id === gameId);
   const rivalHandle = sample?.rival?.handle ?? 'KOJI';
   const ghostTarget = sample?.rival ? (sample.best ?? 0) + sample.rival.by : undefined;
-  const unit = sample?.unit ?? 'blocks';
-  const lowerIsBetter = LOWER_IS_BETTER[gameId] ?? false;
+  const unit = meta?.unit ?? sample?.unit ?? 'blocks';
+  const lowerIsBetter = meta?.lowerIsBetter ?? false;
 
   const getProgress = useStore((s) => s.getProgress);
   const commitRun = useStore((s) => s.commitRun);
@@ -102,10 +101,13 @@ export default function Match() {
     [carriedScore, commitRun, gameId, getProgress, ghostTarget, lowerIsBetter, runSource, unit]
   );
 
-  const progress = useMemo(
-    () => (ghostTarget && ghostTarget > 0 ? Math.min(1, score / ghostTarget) : 0),
-    [score, ghostTarget]
-  );
+  const progress = useMemo(() => {
+    if (!ghostTarget || ghostTarget <= 0) return 0;
+    // Lower-is-better games approach the ghost from above, so the bar fills as
+    // the score drops toward it.
+    if (lowerIsBetter) return score > 0 ? Math.min(1, ghostTarget / score) : 0;
+    return Math.min(1, score / ghostTarget);
+  }, [score, ghostTarget, lowerIsBetter]);
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>

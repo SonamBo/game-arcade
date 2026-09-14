@@ -90,6 +90,34 @@ dev-console + in-memory buffer; swapping in PostHog/Amplitude/own endpoint is a
 one-function change. Blocks nothing, but the destination is still **open
 question 7**.
 
+### D-015 · Component-based engine model (contract frozen)
+**Stage 04.** The contract froze on a component model, not the earlier
+`GameInstance { onFrame/onInput }` sketch. An engine is a React component that
+takes `GameScreenProps & { config }` and runs its own `useRunLoop` internally
+(as STACK already did). Reason: RN geometric games render very differently per
+archetype (a needle vs falling lanes vs targets), so a generic
+render-a-GameInstance host would have been a fiction. A game is either bespoke
+(ships a component) or engine+config. The match host renders both identically.
+
+### D-016 · Three engines now, not nine
+**Stage 04.** The plan said "all nine engines". Building five engines that have
+no real games yet would violate the plan's own hazard #1 ("build against real
+games; expect one to be wrong"). So stage 04 ships the framework plus the three
+engines the real/near-term games exercise — needle-band (REFLEX, SNAP),
+lane-runner (DODGE, GLIDE), target-tap (AIM) — covering 21 of 40 catalogue slots.
+The other five (orbit-timing, grid-merge, number-pick, memory-recall, trace-path)
+are added in stage-09 batches when their games are built; the framework makes
+each a drop-in. A game whose engine is absent resolves to unplayable and shows
+the placeholder — never a crash.
+
+### D-017 · Worklets never reference the run loop object
+**Stage 04.** A Reanimated worklet captures its closure when it is *created*, so
+a frame worklet that referenced the not-yet-returned `loop` object captured
+`undefined`. Rule going forward: a game's `onFrame` worklet touches only shared
+values created before it (lane-runner uses an `over` shared value for collision
+stop and computes score from `distance`, never `loop.score`). Documented so the
+five future engines don't rediscover it.
+
 ### D-008 · The rails screen is disposable
 **Stage 00.** `app/index.tsx` is a diagnostic, not a product screen, and stage
 01 deletes it. It is written in the product's visual grammar anyway so that a

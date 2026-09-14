@@ -7,27 +7,41 @@ anything else, it wins.
 
 ## Where we are
 
-**Stage 03 · Results, auto-queue and retry — VERIFIED (compiles + bundles).
-Device play pass still pending.**
+**Stage 04 · Engines and the scaffold — VERIFIED (compiles + bundles). Device
+play pass still pending. THE CONTRACT IS FROZEN.**
 
 `tsc --noEmit` is clean and `expo export --platform android` bundles with exit
-0, including react-native-svg's animated ring. Built on **Expo SDK 57**, Node
-24.19.
+0, including three Reanimated engines and the resolver. Built on **Expo SDK 57**,
+Node 24.19.
 
-The retention loop is now closed end to end: a run ends → results → a live
-three-second ring auto-loads the next ranked game → the next run starts, all
-unattended, with a cancel that always works. Stages 00–02 are verified and
-committed (`cd9a8a7`, `a8f8b78`, `480b070`).
+The multiplier is real: REFLEX and DODGE now play from **config alone** (no
+bespoke code), and a sixth game (GLIDE) was added end-to-end by
+`npm run new-game` touching one file, then typechecked clean. Stages 00–03 are
+verified and committed.
 
 **Left to do on the device** (needs a phone + Expo Go, `npx expo start`):
-- play STACK, then let results sit: the ring should auto-load the next game in
-  three seconds. Tap the ring mid-count — it must always cancel and keep the
-  suggestion. Play until a near-miss (within 18% of your best) to see the retry
-  band; take a retry and confirm the next run **starts at the score you reached**.
-- burn the three free retries and confirm the fourth reads "RETRY · 50 COINS",
-  and that a zero balance routes to Shop rather than failing.
-- carried over from earlier stages: 60fps feel of STACK, the tabs/pushed
-  screens, and `/gallery`.
+- play REFLEX, DODGE (button-first lanes), SNAP, AIM, GLIDE — all from config.
+  Watch DODGE/GLIDE with many obstacles for 60fps (the pooled-worklet claim).
+- everything from stages 02–03 (STACK feel, the live auto-queue, near-miss retry).
+
+### What stage 04 delivered
+- **Contract frozen** (`games/types.ts`), component model: bespoke `Component`
+  or engine + `config`; both satisfy `GameScreenProps` (D-015).
+- **Three engines** in `games/engines/`: needle-band, lane-runner (pooled
+  obstacles on the UI thread, button-first), target-tap. Five more engines are
+  stage-09 batches (D-016).
+- **`games/catalogue/`** — one file per game: stack (bespoke), reflex, dodge,
+  snap, aim, glide. `index.ts` is the manifest.
+- **`games/registry.tsx`** resolves id → component (+ config) and meta;
+  unbuilt-engine games resolve to unplayable → placeholder, never a crash.
+- **`npm run new-game`** (`scripts/new-game.mjs`) — writes one catalogue file
+  from engine defaults and registers it. **`games/README.md`** authoring guide.
+- match/game screens now read unit/lowerIsBetter/name/blurb from registry meta.
+
+### Contract freeze note
+`games/types.ts` is frozen. Adding a game must not require editing it. Adding an
+engine appends to `games/engines/index.ts` only. If something forces a contract
+change, that is a real event — record it in DECISIONS with the reason.
 
 ### What stage 03 delivered
 - **`components/ui/QueueRing.tsx`** rebuilt: an SVG progress ring with a
