@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Game Arcade",
+    "slug": "game-arcade",
+    "scheme": "gamearcade",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#f3f2f2",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#f3f2f2",
+      "resizeMode": "contain"
+    },
+    "android": {
+      "package": "com.gamearcade.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#ec3013"
+      }
+    },
+    "plugins": ["expo-router", "expo-font"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

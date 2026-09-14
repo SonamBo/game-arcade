@@ -1,0 +1,19 @@
+{
+  "name": "game-arcade",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "setup": "expo install expo-router react-native react-dom react-native-safe-area-context react-native-screens expo-linking expo-constants expo-status-bar expo-haptics expo-font @expo-google-fonts/archivo react-native-reanimated react-native-gesture-handler @react-native-async-storage/async-storage && npm i zustand && expo install --fix",
+    "start": "expo start",
+    "android": "expo run:android",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "expo": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "typescript": "latest"
+  }
+}
