@@ -11,7 +11,10 @@
  *   - a game never decides what happens after the run ends
  *   - adding a game touches exactly one file
  */
-import type { Family } from '@/types/models';
+import type { ComponentType } from 'react';
+import type { SharedValue } from 'react-native-reanimated';
+
+import type { Family, Run } from '@/types/models';
 
 /** The nine archetype engines. Stage 04 implements these. */
 export type EngineId =
@@ -72,12 +75,40 @@ export interface RunContext {
 export interface GameInstance {
   onFrame: (dt: number) => void;
   onInput: (e: InputEvent) => void;
-  /** Reanimated SharedValue<number>. Typed loosely until stage 02 pins it. */
-  score: { value: number };
+  /** Mutated on the UI thread, mirrored to React only when it changes. */
+  score: SharedValue<number>;
   isOver: () => boolean;
   /** Optional teardown for engines that allocate. */
   dispose?: () => void;
 }
+
+/**
+ * How a game is rendered on screen. STACK (stage 02) is a bespoke component
+ * built directly on `useRunLoop`; the archetype engines (stage 04) will be
+ * wrapped in one shared host that renders GameInstance. Either way the game
+ * reports its score and reports when the run ends — it never navigates, never
+ * touches the store, and never decides what the score means.
+ */
+export interface GameScreenProps {
+  /** Playfield size in dp, excluding chrome. Measured by the host. */
+  width: number;
+  height: number;
+  /** The rival's final score for this run. Undefined on a cold first run. */
+  ghostTarget?: number;
+  /** True when the day's variant rules apply (e.g. STACK blackout). */
+  variant?: boolean;
+  /** Live score mirror for the match header. Fires only when the score changes. */
+  onScore?: (score: number) => void;
+  /** Live ghost mirror for the match header. Fires only when it changes. */
+  onGhost?: (ghost: number) => void;
+  /** The run has ended at this final score. The host builds the Run record. */
+  onEnd: (score: number) => void;
+}
+
+export type GameComponent = ComponentType<GameScreenProps>;
+
+/** What a finished run needs from the game, before the app adds meaning. */
+export type { Run };
 
 export interface Engine<Cfg> {
   id: EngineId;

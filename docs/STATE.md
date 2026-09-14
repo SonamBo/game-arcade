@@ -7,33 +7,43 @@ anything else, it wins.
 
 ## Where we are
 
-**Stage 01 · Shell and eleven components — VERIFIED (compiles + bundles).
-Device visual pass still pending.**
+**Stage 02 · Run loop and STACK — VERIFIED (compiles + bundles). Device play
+pass still pending.**
 
-`tsc --noEmit` is clean across all fourteen routes and eleven components, and
-`expo export --platform android` bundles with exit 0. Built on **Expo SDK 57**,
-Node 24.19.
+`tsc --noEmit` is clean and `expo export --platform android` bundles with exit
+0, including the Reanimated worklets in `useRunLoop` and `StackGame`. Built on
+**Expo SDK 57**, Node 24.19.
 
-Stage 00 is fully verified and committed (`cd9a8a7`); its three SDK-57 fixes are
-recorded in DECISIONS. The rails-check screen has been deleted.
+STACK is a real, playable game now: tap-to-drop, slicing, perfects, run
+termination, a genuine `Run` record committed to the store, and best that
+persists. Stages 00 and 01 are verified and committed (`cd9a8a7`, `a8f8b78`).
 
 **Left to do on the device** (needs a phone + Expo Go, `npx expo start`):
-- walk the five tabs and the pushed screens; confirm chrome matches the spec
-- open `/gallery` and eyeball all eleven components in every state
-- confirm Archivo renders, palette is right, tap targets feel ≥48px
+- play STACK from the STACK detail screen → PLAY. Check it holds 60fps, the
+  slice and perfect feel right, the run ends on a miss, results shows the real
+  score, and the best survives a force-quit and relaunch.
+- also still open from stage 01: walk the tabs/pushed screens and `/gallery`.
 
-### What stage 01 delivered
-- **Chrome:** `TopBar`, `BackBar`, `MatchChrome`, and the five-tab bar (custom
-  render prop in `app/(tabs)/_layout.tsx`, with the onboarding redirect gate).
-- **Eleven §6 components** in `components/ui/`: PosterBand, EditorialRow,
-  ShelfTile (+grid), IndexRow, StatStrip, GhostBand, LeaderboardRow, FeedPost,
-  QueueRing, NotificationRow, ToastStrip — each with its listed states. Plus
-  shared `primitives.tsx` (Button ×3 variants, rules, accent square/dot) and
-  `Segmented`.
-- **Fourteen routes:** onboarding; the five tabs (index/Home, feed, duels, shop,
-  me); and pushed browse, game/[id], match/[id], results, drop, bracket,
-  friend/[handle], inbox. Plus a dev-only `/gallery`.
-- `data/samples.ts` — placeholder content (see DECISIONS D-010).
+### What stage 02 delivered
+- **`games/useRunLoop.ts`** — the shared frame clock (dt clamped 48ms), ghost
+  ticker (`min(target, target·elapsed/16s)`), and run start/end lifecycle. Score
+  is a shared value; the ghost mirrors to JS only when its integer changes.
+- **`games/stack/StackGame.tsx`** — STACK against the §6 tuning: 140px block,
+  190→430px/s, overlap slice, perfect inside 6px scores 2, end when overlap ≤ 6,
+  last 11 blocks alternating ink/n800, active block accent, blackout-variant
+  ground flip. Continuous slide runs in a worklet; placements are JS.
+- **`store` `commitRun` + transient `lastRun`** — one call folds a finished run
+  into progress/best, streak, coins and the session's distinct-games count.
+- **`app/match/[id].tsx`** rewritten to host a real game (measures the field,
+  mirrors score/ghost into `MatchChrome`, builds + commits the `Run`, goes to
+  results). **`app/results.tsx`** now reads the real `lastRun`.
+- **`games/registry.ts`** — `getGameComponent()`; STACK registered.
+- **contract** (`games/types.ts`) — `score` tightened to `SharedValue<number>`;
+  added `GameScreenProps` / `GameComponent`. Still freezes at stage 04.
+
+### From stage 01 (unchanged, still on device to-do)
+Chrome (TopBar/BackBar/MatchChrome/tab bar), the eleven §6 components, the
+fourteen routes, `/gallery`, and `data/samples.ts` placeholder content.
 
 ---
 
@@ -61,13 +71,14 @@ recorded in DECISIONS. The rails-check screen has been deleted.
 
 ## Not done
 
-- No real games yet — `match/[id]` is a placeholder field that jumps to results.
-  The run loop and STACK are stage 02.
-- The nine engines do not exist — stage 04.
+- STACK is the only real game. REFLEX and DODGE (and the nine engines they need)
+  are stage 04; other ids show a placeholder in the match screen.
+- The auto-queue ring on results is still static: no live 3s countdown, no real
+  next-ranked game, no retry-at-carried-score economy. That is **stage 03**.
 - `data/catalogue.ts` (forty real games) and `data/seed.ts` (23 friends) are
-  stage 05 / 06; screens currently read `data/samples.ts`.
-- Screens are wired with sample data and illustrative navigation; ranking,
-  pinning persistence and the derived feed become real in stages 05–06.
+  stage 05 / 06; screens currently read `data/samples.ts`, so the rival/ghost on
+  the match header and results is sample-derived, not yet a real rival.
+- Ranking, pinning persistence and the derived feed become real in stages 05–06.
 
 ---
 

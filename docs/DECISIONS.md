@@ -49,7 +49,7 @@ installed SDK. The resolved file should be committed.
 **Stage 00.** The build brief calls DODGE "swipe plus buttons"; UI spec §7
 lists its input as two lane buttons plus arrow keys, with no swipe, and §05
 describes only the button strip. The UI spec wins by its own stated rule.
-*Open:* flagged to Sonu, not yet confirmed.
+*Confirmed by Sonu, stage 02: build buttons first, swipe is an optional extra.*
 
 ### D-009 · Tab bar is custom, typed against a local prop shape
 **Stage 01.** The five-tab bar is a custom `tabBar` render prop on expo-router's
