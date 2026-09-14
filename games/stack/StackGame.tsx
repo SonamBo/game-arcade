@@ -38,7 +38,7 @@ interface Block {
   w: number;
 }
 
-export function StackGame({ width, height, ghostTarget, variant, onScore, onGhost, onEnd }: GameScreenProps) {
+export function StackGame({ width, height, ghostTarget, variant, carriedScore = 0, onScore, onGhost, onEnd }: GameScreenProps) {
   const curX = useSharedValue(0);
   const curW = useSharedValue(START_W);
   const dir = useSharedValue(1);
@@ -78,6 +78,9 @@ export function StackGame({ width, height, ghostTarget, variant, onScore, onGhos
     overRef.current = false;
     setReady(true);
     loop.start();
+    // A retry resumes at the score reached, not zero (build brief §6).
+    loop.score.value = carriedScore;
+    onScore?.(carriedScore);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [width, ready]);
 

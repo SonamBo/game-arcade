@@ -7,22 +7,43 @@ anything else, it wins.
 
 ## Where we are
 
-**Stage 02 · Run loop and STACK — VERIFIED (compiles + bundles). Device play
-pass still pending.**
+**Stage 03 · Results, auto-queue and retry — VERIFIED (compiles + bundles).
+Device play pass still pending.**
 
 `tsc --noEmit` is clean and `expo export --platform android` bundles with exit
-0, including the Reanimated worklets in `useRunLoop` and `StackGame`. Built on
-**Expo SDK 57**, Node 24.19.
+0, including react-native-svg's animated ring. Built on **Expo SDK 57**, Node
+24.19.
 
-STACK is a real, playable game now: tap-to-drop, slicing, perfects, run
-termination, a genuine `Run` record committed to the store, and best that
-persists. Stages 00 and 01 are verified and committed (`cd9a8a7`, `a8f8b78`).
+The retention loop is now closed end to end: a run ends → results → a live
+three-second ring auto-loads the next ranked game → the next run starts, all
+unattended, with a cancel that always works. Stages 00–02 are verified and
+committed (`cd9a8a7`, `a8f8b78`, `480b070`).
 
 **Left to do on the device** (needs a phone + Expo Go, `npx expo start`):
-- play STACK from the STACK detail screen → PLAY. Check it holds 60fps, the
-  slice and perfect feel right, the run ends on a miss, results shows the real
-  score, and the best survives a force-quit and relaunch.
-- also still open from stage 01: walk the tabs/pushed screens and `/gallery`.
+- play STACK, then let results sit: the ring should auto-load the next game in
+  three seconds. Tap the ring mid-count — it must always cancel and keep the
+  suggestion. Play until a near-miss (within 18% of your best) to see the retry
+  band; take a retry and confirm the next run **starts at the score you reached**.
+- burn the three free retries and confirm the fourth reads "RETRY · 50 COINS",
+  and that a zero balance routes to Shop rather than failing.
+- carried over from earlier stages: 60fps feel of STACK, the tabs/pushed
+  screens, and `/gallery`.
+
+### What stage 03 delivered
+- **`components/ui/QueueRing.tsx`** rebuilt: an SVG progress ring with a
+  Reanimated sweep, a live digit, and a self-owned three-second countdown.
+  Cancel is ref-guarded so it always wins (D-013). `autoStart`/`startCancelled`
+  props keep the gallery static.
+- **`app/results.tsx`** — real next-ranked game via `compareRank` + `nextInQueue`
+  (the same ranking the shelf will use), the live auto-queue, and the near-miss
+  retry economy: free ×3/day then 50 coins, a short balance routes to Shop, and
+  a retry resumes at the score reached.
+- **carried score** threaded through `GameScreenProps` → `StackGame` → `match`
+  (`?carry=<score>`), so a retry starts where the near-miss ended. `Run.carriedFrom`
+  records it.
+- **`lib/analytics.ts`** — the seven §10 events, fired from match and results.
+  Dev-console sink for now (D-014); destination is open question 7.
+- react-native-svg 15.15.4 added (D-012).
 
 ### What stage 02 delivered
 - **`games/useRunLoop.ts`** — the shared frame clock (dt clamped 48ms), ghost

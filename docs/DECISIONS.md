@@ -70,6 +70,26 @@ these rows are real.
 is a genuine countdown dial, so `QueueRing` uses a circular border. The conic
 sweep and live countdown animate in stage 03, driven by the run loop.
 
+### D-012 · react-native-svg for the auto-queue ring
+**Stage 03.** The §06d ring is a conic countdown dial, which RN cannot draw
+without SVG or Skia. Added `react-native-svg` (15.15.4) — lighter than Skia and
+enough for an animated arc (a Reanimated-driven `strokeDashoffset`). Skia is
+still held in reserve for a game that needs curves or particles (per the brief).
+
+### D-013 · QueueRing owns its own countdown; cancel is ref-guarded
+**Stage 03.** The acceptance test names "a cancel that always works", so the
+countdown, the completion callback and the cancel all live in one component with
+a single `doneRef` latch: whichever of cancel/complete fires first wins, and the
+Reanimated sweep's finish callback is ignored once cancelled. This is the one
+behaviour worth centralising rather than spreading across the screen.
+
+### D-014 · Instrumentation buffers until a destination is chosen
+**Stage 03.** `lib/analytics.ts` implements the seven §10 events with their
+properties and fires them from the match and results screens. The sink is a
+dev-console + in-memory buffer; swapping in PostHog/Amplitude/own endpoint is a
+one-function change. Blocks nothing, but the destination is still **open
+question 7**.
+
 ### D-008 · The rails screen is disposable
 **Stage 00.** `app/index.tsx` is a diagnostic, not a product screen, and stage
 01 deletes it. It is written in the product's visual grammar anyway so that a

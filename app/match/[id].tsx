@@ -9,27 +9,31 @@
  * placeholder until stages 04+.
  */
 import { router, useLocalSearchParams } from 'expo-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import type { LayoutChangeEvent } from 'react-native';
 
 import { MatchChrome } from '@/components/chrome/MatchChrome';
 import { getGameComponent } from '@/games/registry';
 import { SAMPLE_GAMES } from '@/data/samples';
+import { track } from '@/lib/analytics';
 import { useStore } from '@/store';
 import { C, T } from '@/theme/tokens';
 import { text } from '@/theme/type';
 import { coinsFor, isNearMiss } from '@/types/models';
-import type { Run } from '@/types/models';
+import type { Run, RunSource } from '@/types/models';
 
 // Higher-is-better for every stage-02 game. The catalogue carries the real flag
 // per game from stage 05; STACK is higher-is-better.
 const LOWER_IS_BETTER: Record<string, boolean> = {};
 
 export default function Match() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, carry, source } = useLocalSearchParams<{ id: string; carry?: string; source?: string }>();
   const gameId = String(id ?? 'stack');
   const Game = getGameComponent(gameId);
+
+  const carriedScore = carry ? Math.max(0, parseInt(carry, 10) || 0) : 0;
+  const runSource = (source as RunSource) ?? 'shelf';
 
   const sample = SAMPLE_GAMES.find((g) => g.id === gameId);
   const rivalHandle = sample?.rival?.handle ?? 'KOJI';
@@ -41,9 +45,15 @@ export default function Match() {
   const commitRun = useStore((s) => s.commitRun);
 
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
-  const [score, setScore] = useState(0);
+  const [score, setScore] = useState(carriedScore);
   const [ghost, setGhost] = useState(0);
   const startedAt = useRef(Date.now());
+
+  useEffect(() => {
+    if (!Game) return;
+    track({ name: 'run_started', game: gameId, source: runSource, carried_score: carriedScore, variant: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onLayout = useCallback((e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -60,6 +70,7 @@ export default function Match() {
       const beatGhost =
         ghostTarget != null && (lowerIsBetter ? finalScore <= ghostTarget : finalScore >= ghostTarget);
 
+      const endedAt = Date.now();
       const run: Run = {
         gameId,
         score: finalScore,
@@ -69,16 +80,26 @@ export default function Match() {
         delta,
         nearMiss: isNearMiss(prevBest, improved, delta),
         coins: coinsFor(finalScore, unit, false),
+        carriedFrom: carriedScore > 0 ? carriedScore : undefined,
         variant: false,
         startedAt: startedAt.current,
-        endedAt: Date.now(),
-        source: 'shelf',
+        endedAt,
+        source: runSource,
       };
 
       commitRun(run);
+      track({
+        name: 'run_ended',
+        game: gameId,
+        score: finalScore,
+        improved,
+        beat_ghost: beatGhost,
+        coins: run.coins,
+        duration: endedAt - startedAt.current,
+      });
       router.replace('/results');
     },
-    [commitRun, gameId, getProgress, ghostTarget, lowerIsBetter, unit]
+    [carriedScore, commitRun, gameId, getProgress, ghostTarget, lowerIsBetter, runSource, unit]
   );
 
   const progress = useMemo(
@@ -102,6 +123,7 @@ export default function Match() {
             width={size.w}
             height={size.h}
             ghostTarget={ghostTarget}
+            carriedScore={carriedScore}
             onScore={setScore}
             onGhost={setGhost}
             onEnd={onEnd}

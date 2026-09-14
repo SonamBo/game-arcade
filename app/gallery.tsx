@@ -82,9 +82,9 @@ export default function Gallery() {
         <FeedPost who="WORLD RECORD" kicker="GLOBAL MOMENT" time="1h" headline="ORBIT · 40 laps" figure={40} unit="laps" reactions={204} comments={55} verb="TRY ORBIT" global />
 
         <H n="09" label="Queue ring — counting / cancelled" />
-        <QueueRing seconds={3} nextName="DODGE" reason="ZAID BEAT YOU BY 2" />
+        <QueueRing nextName="DODGE" reason="ZAID BEAT YOU BY 2" autoStart={false} />
         <Rule />
-        <QueueRing seconds={0} nextName="DODGE" reason="" cancelled />
+        <QueueRing nextName="DODGE" reason="" startCancelled />
 
         <H n="10" label="Notification row — actionable (tinted) / informational" />
         <NotificationRow kind="CHALLENGE" message="RAVI called you out on STACK" time="2m" verb="RACE" actionable />

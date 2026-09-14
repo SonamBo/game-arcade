@@ -2,15 +2,20 @@
  * 06 · Results — the retention screen. Reads the real Run just committed
  * (store.lastRun). Accent banner on a personal best, ink otherwise; the score at
  * 72px and one plain-language headline. A three-cell strip, a near-miss band
- * only when the run fell within 18% of the player's best, then the auto-queue.
+ * only when the run fell within 18% of the player's best, then the live
+ * auto-queue.
  *
- * The live three-second countdown, the near-miss retry economy and the real
- * next-ranked game are stage 03; here the ring is static and the numbers are
- * real. If there is no committed run (e.g. deep-linked), it falls back to a
- * neutral empty state.
+ * Stage 03 makes the loop real:
+ *   - the next game is the first ranked game that is not the one just played,
+ *     using the same rankScore() the shelf uses (build brief §5)
+ *   - the three-second ring auto-loads it; the cancel always works and keeps the
+ *     suggestion (§06d, §9)
+ *   - the near-miss retry is free three times a day then 50 coins, and a short
+ *     balance routes to Shop rather than failing silently; a retry resumes at
+ *     the score reached (§6, §9)
  */
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,17 +23,62 @@ import { QueueRing } from '@/components/ui/QueueRing';
 import { Button, Rule } from '@/components/ui/primitives';
 import { StatStrip } from '@/components/ui/StatStrip';
 import { SAMPLE_GAMES } from '@/data/samples';
+import { reasonType, track } from '@/lib/analytics';
 import { useStore } from '@/store';
 import { C, S, T } from '@/theme/tokens';
 import { text } from '@/theme/type';
+import { compareRank, nextInQueue, reasonLine } from '@/types/models';
+import type { Game, RankInput } from '@/types/models';
+
+/** The first ranked game that is not the one just played. */
+function nextRanked(excludeId: string) {
+  const ranked: RankInput[] = SAMPLE_GAMES.map((g) => {
+    const game: Game = {
+      id: g.id,
+      name: g.name,
+      code: g.code,
+      family: g.family,
+      unit: g.unit,
+      lowerIsBetter: false,
+      playable: g.id === 'stack',
+      blurb: '',
+    };
+    return {
+      game,
+      rivalAhead: !!g.rival,
+      neverPlayed: !!g.neverPlayed,
+      friendsOn: g.friendsOn,
+      rivalHandle: g.rival?.handle,
+      rivalScore: g.rival ? (g.best ?? 0) + g.rival.by : undefined,
+      best: g.best ?? 0,
+    };
+  });
+  ranked.sort(compareRank);
+  const pick = nextInQueue(ranked, excludeId) ?? ranked[0];
+  return {
+    id: pick.game.id,
+    name: pick.game.name,
+    reason: reasonLine(pick),
+    reasonType: reasonType(pick.rivalAhead, pick.neverPlayed),
+  };
+}
 
 export default function Results() {
   const insets = useSafeAreaInsets();
   const run = useStore((s) => s.lastRun);
   const getProgress = useStore((s) => s.getProgress);
-  const [cancelled, setCancelled] = useState(false);
+  const freeRetriesLeft = useStore((s) => s.wallet.freeRetriesLeft);
+  const takeRetry = useStore((s) => s.takeRetry);
+  const shownAt = useRef(Date.now());
 
-  if (!run) {
+  const next = run ? nextRanked(run.gameId) : null;
+
+  useEffect(() => {
+    if (next) track({ name: 'queue_shown', next_game: next.id, reason_type: next.reasonType, seconds_elapsed: 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!run || !next) {
     return (
       <View style={{ flex: 1, backgroundColor: C.bg, paddingTop: insets.top, alignItems: 'center', justifyContent: 'center' }}>
         <Text style={text('kicker', { color: C.n500 })}>No run to show</Text>
@@ -49,6 +99,35 @@ export default function Results() {
     : run.beatGhost
       ? `You took ${rival}'s ghost.`
       : `${rival}'s ghost held. ${run.delta} short.`;
+
+  const elapsedSince = () => Math.round((Date.now() - shownAt.current) / 1000);
+
+  const goNext = (accepted: boolean) => {
+    track({
+      name: accepted ? 'queue_accepted' : 'queue_cancelled',
+      next_game: next.id,
+      reason_type: next.reasonType,
+      seconds_elapsed: elapsedSince(),
+    });
+    if (accepted) router.replace(`/match/${next.id}?source=queue`);
+  };
+
+  const onRetry = () => {
+    const res = takeRetry();
+    if (res === 'insufficient') {
+      // A short balance routes to Shop rather than failing silently (§9).
+      router.navigate('/shop');
+      return;
+    }
+    track({ name: 'retry_taken', free: res === 'free', delta_to_best: run.delta, coins_spent: res === 'paid' ? 50 : 0 });
+    router.replace(`/match/${run.gameId}?carry=${run.score}&source=retry`);
+  };
+
+  const retryLabel = freeRetriesLeft > 0 ? 'Retry free' : 'Retry · 50 coins';
+  const retryNote =
+    freeRetriesLeft > 0
+      ? `${freeRetriesLeft} free ${freeRetriesLeft === 1 ? 'retry' : 'retries'} left today. Retry restarts at the score reached.`
+      : 'Out of free retries. 50 coins, restarts at the score reached.';
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg, paddingTop: insets.top }}>
@@ -80,21 +159,21 @@ export default function Results() {
               YOU WERE {run.delta} OFF YOUR BEST
             </Text>
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 12, alignItems: 'center' }}>
-              <Button label="Retry free" variant="accent" onPress={() => router.replace(`/match/${run.gameId}`)} />
-              <Text style={text('meta', { color: C.n700 })}>3 free retries left today. Retry restarts at the score reached.</Text>
+              <Button label={retryLabel} variant="accent" onPress={onRetry} />
+              <Text style={[text('meta', { color: C.n700 }), { flex: 1 }]}>{retryNote}</Text>
             </View>
           </View>
         ) : null}
 
-        {/* auto-queue (static until stage 03) */}
+        {/* live auto-queue */}
         <View style={{ height: S.rule }} />
         <QueueRing
-          seconds={3}
-          nextName="DODGE"
-          reason="ZAID BEAT YOU BY 2"
-          cancelled={cancelled}
-          onCancel={() => setCancelled(true)}
-          onPlay={() => router.replace('/match/dodge')}
+          durationMs={3000}
+          nextName={next.name}
+          reason={next.reason}
+          onComplete={() => goNext(true)}
+          onCancel={() => goNext(false)}
+          onPlay={() => router.replace(`/match/${next.id}?source=queue`)}
         />
         <Rule />
 
@@ -104,7 +183,7 @@ export default function Results() {
 
         <View style={{ flexDirection: 'row', gap: S.gap, backgroundColor: C.divider, marginTop: 8 }}>
           <View style={{ flex: 1 }}>
-            <Button label="Run it again" variant="accent" full onPress={() => router.replace(`/match/${run.gameId}`)} />
+            <Button label="Run it again" variant="accent" full onPress={() => router.replace(`/match/${run.gameId}?source=retry`)} />
           </View>
           <View style={{ flex: 1 }}>
             <Button label="Shelf" variant="inverse" full onPress={() => router.navigate('/')} />

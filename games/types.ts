@@ -97,6 +97,8 @@ export interface GameScreenProps {
   ghostTarget?: number;
   /** True when the day's variant rules apply (e.g. STACK blackout). */
   variant?: boolean;
+  /** A retry resumes at the score reached, not zero. Defaults to 0. */
+  carriedScore?: number;
   /** Live score mirror for the match header. Fires only when the score changes. */
   onScore?: (score: number) => void;
   /** Live ghost mirror for the match header. Fires only when it changes. */
