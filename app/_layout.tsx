@@ -10,10 +10,11 @@ import {
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { View } from 'react-native';
+import { AppState, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { track } from '@/lib/analytics';
 import { useHydrated, useStore } from '@/store';
 import { C } from '@/theme/tokens';
 
@@ -34,6 +35,28 @@ export default function RootLayout() {
     dailyReset(now);
     beginSession(now);
   }, [hydrated, dailyReset, beginSession]);
+
+  // Close out the session when the app goes to the background — this is where
+  // distinct-games-per-session, one of the two numbers the product is judged on,
+  // is emitted. Reopening starts a fresh session.
+  useEffect(() => {
+    if (!hydrated) return;
+    const sub = AppState.addEventListener('change', (state) => {
+      const store = useStore.getState();
+      if (state === 'background' || state === 'inactive') {
+        const cur = store.current;
+        if (cur) {
+          track({ name: 'session', runs: cur.runs.length, distinct_games: cur.distinctGames.length, ended_by: 'app_background' });
+          store.endSession('app_background', Date.now());
+        }
+      } else if (state === 'active') {
+        const now = Date.now();
+        store.dailyReset(now);
+        store.beginSession(now);
+      }
+    });
+    return () => sub.remove();
+  }, [hydrated]);
 
   const ready = fontsLoaded && hydrated;
 

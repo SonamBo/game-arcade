@@ -4,6 +4,7 @@
  * toggles the pin and shows the ink toast — including "SHELF FULL — UNPIN ONE
  * FIRST" at twelve. Search is name + family + mechanic keywords (spec §11).
  */
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ScrollView, TextInput, View } from 'react-native';
@@ -40,8 +41,13 @@ export default function Browse() {
   const onPin = (id: string, name: string) => {
     const res = togglePin(id);
     track({ name: 'pin_changed', game: id, pinned: res === 'pinned', refused: res === 'refused' });
-    if (res === 'refused') setToast({ label: 'Shelf full — unpin one first', refusal: true });
-    else setToast({ label: res === 'pinned' ? `${name} pinned to your shelf` : `${name} unpinned` });
+    if (res === 'refused') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      setToast({ label: 'Shelf full — unpin one first', refusal: true });
+    } else {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setToast({ label: res === 'pinned' ? `${name} pinned to your shelf` : `${name} unpinned` });
+    }
     setTimeout(() => setToast(null), 1600);
   };
 

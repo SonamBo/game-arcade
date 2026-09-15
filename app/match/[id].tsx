@@ -25,12 +25,13 @@ import { coinsFor, isNearMiss } from '@/types/models';
 import type { Run, RunSource } from '@/types/models';
 
 export default function Match() {
-  const { id, carry, source } = useLocalSearchParams<{ id: string; carry?: string; source?: string }>();
+  const { id, carry, source, variant } = useLocalSearchParams<{ id: string; carry?: string; source?: string; variant?: string }>();
   const gameId = String(id ?? 'stack');
   const Game = getGameComponent(gameId);
 
   const carriedScore = carry ? Math.max(0, parseInt(carry, 10) || 0) : 0;
   const runSource = (source as RunSource) ?? 'shelf';
+  const isVariant = variant === '1';
 
   // Unit and score direction come from the game's own metadata; the rival/ghost
   // is the deterministic cold-start global rival until the social layer (stage 06).
@@ -51,7 +52,7 @@ export default function Match() {
 
   useEffect(() => {
     if (!Game) return;
-    track({ name: 'run_started', game: gameId, source: runSource, carried_score: carriedScore, variant: false });
+    track({ name: 'run_started', game: gameId, source: runSource, carried_score: carriedScore, variant: isVariant });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -79,9 +80,9 @@ export default function Match() {
         beatGhost,
         delta,
         nearMiss: isNearMiss(prevBest, improved, delta),
-        coins: coinsFor(finalScore, unit, false),
+        coins: coinsFor(finalScore, unit, isVariant),
         carriedFrom: carriedScore > 0 ? carriedScore : undefined,
-        variant: false,
+        variant: isVariant,
         startedAt: startedAt.current,
         endedAt,
         source: runSource,
@@ -126,6 +127,7 @@ export default function Match() {
             width={size.w}
             height={size.h}
             ghostTarget={ghostTarget}
+            variant={isVariant}
             carriedScore={carriedScore}
             onScore={setScore}
             onGhost={setGhost}

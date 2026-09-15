@@ -14,6 +14,7 @@
  *     balance routes to Shop rather than failing silently; a retry resumes at
  *     the score reached (§6, §9)
  */
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { ScrollView, Text, View } from 'react-native';
@@ -47,6 +48,8 @@ export default function Results() {
 
   useEffect(() => {
     if (next) track({ name: 'queue_shown', next_game: next.id, reason_type: next.reasonType, seconds_elapsed: 0 });
+    // Success buzz on a personal best — the one that makes it feel expensive.
+    if (run?.improved) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

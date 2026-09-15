@@ -37,6 +37,8 @@ export const useStore = create<Store>()(
         onboardingComplete: s.onboardingComplete,
         wallet: s.wallet,
         streak: s.streak,
+        quests: s.quests,
+        powerups: s.powerups,
         rivals: s.rivals,
         history: s.history,
       }),

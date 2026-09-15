@@ -7,27 +7,52 @@ anything else, it wins.
 
 ## Where we are
 
-**Stage 06 · Social layer — VERIFIED (compiles + bundles). Device pass still
-pending.**
+**Stage 07 · Meta and polish — VERIFIED (compiles + bundles). Device
+acceptance pass is the remaining gate.**
 
 `tsc --noEmit` is clean and `expo export --platform android` bundles with exit
 0. Built on **Expo SDK 57**, Node 24.19.
 
-The social layer is live and derived, behind one network-shaped module: 23
-seeded friends, a feed built from the player's own runs + rival callout replies
-+ seeded friend activity, duels with real friend ghost scores, friend profiles
-with head-to-head, and an inbox whose actions launch runs directly. Every
-finished run generates a feed post; beating a rival's ghost schedules that
-rival's callout reply ~90s later. Stages 00–05 are verified and committed.
+All the meta systems are in: daily variant rotation (2× coins), five daily
+quests with claim, a functional shop (coins really spent, power-ups with real
+effects), a season ladder derived from lifetime play, the OFFLINE · SYNCING
+label, a haptics pass, and session instrumentation on background. Stages 00–06
+are verified and committed.
 
-**Left to do on the device** (needs a phone + Expo Go, `npx expo start`):
-- play a game and beat the rival ghost → your run appears in the feed; wait ~90s
-  and the rival's "CALLED YOU OUT" reply surfaces (feed + inbox) while you're
-  still in the app.
-- walk Duels (real friend stakes), a friend profile (head-to-head), and the
-  inbox (every game action launches straight into a run).
-- carried over: the six playable games, 60fps on DODGE/GLIDE, the shelf/browse,
-  the live auto-queue and near-miss retry.
+This is the last **build** stage. What remains is the on-device acceptance pass
+(the six tests below) and then stage 08 (APK/EAS packaging).
+
+### The six acceptance tests (build brief §9) — verify on a mid-range phone
+1. Cold start → first tap under 8s incl. onboarding. *(Boot does no heavy work;
+   onboarding is one screen. Time it.)*
+2. Run ends → next run begins unattended in 3s, cancel always works. *(Stage 03;
+   the ring is ref-guarded.)*
+3. Five consecutive queued DODGE runs, no dropped frame. *(Pooled worklet; this
+   is the one to watch closely.)*
+4. Kill mid-session, relaunch: coins, bests, streak, pins, retry count intact.
+   *(All in the persist partialize; quests + powerups now persisted too.)*
+5. Airplane mode: every playable game still plays; results/coins/feed appear.
+   *(Everything is local; OFFLINE · SYNCING shows in the top bar.)*
+6. Fresh install: named rival + populated global feed + reason line on every
+   top-three row. *(Stages 05–06; deterministic seed.)*
+
+Report any that fail; those are the stage-07 fixes.
+
+### What stage 07 delivered
+- **`data/variant.ts`** — deterministic daily variant rotating at local
+  midnight, 2× coins; wired into the home + drop posters and the match screen
+  (`?variant=1` → `variant` prop + `Run.variant`, so STACK blackout turns on and
+  the coin award doubles).
+- **`data/quests.ts` + economy slice** — five daily quests with per-day counters
+  (runs, distinct, bests, ghosts, variant-cleared), `claimQuest`, reset at local
+  midnight, surfaced on Me with claim buttons. Quests + power-ups now persisted.
+- **shop** — `buyPowerUp` spends real coins (extra retry / ghost scout / streak
+  freeze with real effects); TOP UP disabled (no payments backend, v1).
+- **season ladder** — a real tier derived from lifetime play, shown on Me.
+- **`lib/useOnline.ts`** + TopBar **OFFLINE · SYNCING** label (expo-network).
+- **haptics pass** — success on a personal best, light on pin, error on refusal.
+- **instrumentation** — the `session` event fires on app background with
+  distinct-games count; `dailyReset`/`beginSession` re-run on foreground.
 
 ### What stage 06 delivered
 - **`data/friends.ts`** — 23 deterministic friends, per-(friend,game) bests,

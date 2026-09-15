@@ -11,6 +11,7 @@ import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useStore } from '@/store';
+import { useOnline } from '@/lib/useOnline';
 import { C, S } from '@/theme/tokens';
 import { text } from '@/theme/type';
 import { AccentDot, AccentSquare, VRule } from '@/components/ui/primitives';
@@ -19,6 +20,7 @@ export function TopBar({ unreadInbox = true }: { unreadInbox?: boolean }) {
   const insets = useSafeAreaInsets();
   const coins = useStore((s) => s.wallet.coins);
   const streak = useStore((s) => s.streak.days);
+  const online = useOnline();
 
   return (
     <View style={{ paddingTop: insets.top, backgroundColor: C.bg, borderBottomWidth: S.rule, borderBottomColor: C.divider }}>
@@ -27,6 +29,13 @@ export function TopBar({ unreadInbox = true }: { unreadInbox?: boolean }) {
         <Pressable onPress={() => router.navigate('/')} style={{ paddingHorizontal: S.inset, height: '100%', justifyContent: 'center' }}>
           <Text style={text('kicker', { color: C.text })}>Game Arcade</Text>
         </Pressable>
+
+        {/* offline label — the one tracked status the top bar carries (§9) */}
+        {!online ? (
+          <View style={{ paddingHorizontal: 10 }}>
+            <Text style={text('kicker', { color: C.accentDeep })}>Offline · syncing</Text>
+          </View>
+        ) : null}
 
         <View style={{ flex: 1 }} />
 

@@ -17,7 +17,7 @@ import { BandHeader, Button, Rule } from '@/components/ui/primitives';
 import { ShelfGrid, ShelfRow, ShelfTile } from '@/components/ui/ShelfTile';
 import { GAME_COUNT } from '@/data/catalogue';
 import { rankInputs } from '@/data/seed';
-import { SAMPLE_DROP } from '@/data/samples';
+import { rotationCountdown, todaysVariant, variantFriendsPlayed } from '@/data/variant';
 import { useStore } from '@/store';
 import { C, S } from '@/theme/tokens';
 import { text } from '@/theme/type';
@@ -31,13 +31,23 @@ export default function Home() {
   const editorial = ranked.slice(0, 3);
   const grid = ranked.slice(3, 12);
 
+  const v = todaysVariant();
+  const poster = {
+    kicker: "TODAY'S VARIANT",
+    name: v.name,
+    rule: v.rule,
+    countdown: rotationCountdown(),
+    friendsPlayed: variantFriendsPlayed(),
+    topLine: 'Top: MEHA 31',
+  };
+
   const openGame = (id: string) => router.navigate(`/game/${id}`);
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <TopBar />
       <ScrollView contentContainerStyle={{ paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
-        <PosterBand data={SAMPLE_DROP} onPlay={() => router.navigate('/match/stack?source=poster')} onSecondary={() => router.navigate('/drop')} />
+        <PosterBand data={poster} onPlay={() => router.navigate(`/match/${v.gameId}?variant=1&source=poster`)} onSecondary={() => router.navigate('/drop')} />
 
         <BandHeader kicker="Ranked for you" />
         {editorial.map((ri) => {

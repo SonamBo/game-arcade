@@ -110,9 +110,10 @@ ghost scores, friend profiles with head-to-head, inbox actions that launch runs.
 behind one network-shaped interface so the server swap is a module replacement.
 *Done when:* every finished run generates its post; the callout reply lands minutes later.
 
-**07 · Meta and polish** — wallet and shop, streaks, five daily quests, season ladder,
-daily variant rotation at local midnight, offline queueing, haptics pass, instrumentation.
-*Done when:* all six build-brief acceptance tests pass on a mid-range Android phone.
+**07 · Meta and polish** ✓ (code) — wallet and shop, streaks, five daily quests, season
+ladder, daily variant rotation at local midnight, offline queueing, haptics pass,
+instrumentation. *Done when:* all six build-brief acceptance tests pass on a mid-range
+Android phone. **← the on-device acceptance pass is the one remaining gate.**
 
 **08 · APK and testers** — EAS preview profile (APK) and production profile (AAB),
 Play Internal Testing, side-load instructions, tester note.
