@@ -7,11 +7,15 @@
     "setup": "expo install expo-router react-native react-dom react-native-safe-area-context react-native-screens expo-linking expo-constants expo-status-bar expo-haptics expo-font @expo-google-fonts/archivo react-native-reanimated react-native-gesture-handler @react-native-async-storage/async-storage && npm i zustand && expo install --fix",
     "start": "expo start",
     "android": "expo run:android",
+    "web": "expo start --web",
+    "export:web": "expo export -p web --output-dir dist-web",
+    "serve:web": "npx serve dist-web -s -l 3000",
     "new-game": "node scripts/new-game.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@expo-google-fonts/archivo": "^0.4.2",
+    "@expo/metro-runtime": "~57.0.15",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@types/react": "~19.2.4",
     "expo": "latest",
@@ -29,6 +33,7 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
     "react-native-svg": "15.15.4",
+    "react-native-web": "^0.21.2",
     "typescript": "~6.0.3",
     "zustand": "^5.0.15"
   },

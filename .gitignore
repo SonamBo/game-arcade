@@ -8,3 +8,4 @@ ios/
 .DS_Store
 expo-env.d.ts
 .expo-export-check/
+dist-web/
