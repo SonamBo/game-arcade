@@ -7,25 +7,39 @@ anything else, it wins.
 
 ## Where we are
 
-**Stage 05 · Catalogue, shelf, browse — VERIFIED (compiles + bundles). Device
-pass still pending.**
+**Stage 06 · Social layer — VERIFIED (compiles + bundles). Device pass still
+pending.**
 
 `tsc --noEmit` is clean and `expo export --platform android` bundles with exit
 0. Built on **Expo SDK 57**, Node 24.19.
 
-All forty games exist as data now, the home shelf is ranked by the shared
-ranking path (the same one the auto-queue uses), Browse lists all forty with
-family filters + keyword search + real long-press pinning capped at twelve, and
-a fresh install shows a named GLOBAL RIVAL and a reason line on every top-three
-row. Stages 00–04 are verified and committed.
+The social layer is live and derived, behind one network-shaped module: 23
+seeded friends, a feed built from the player's own runs + rival callout replies
++ seeded friend activity, duels with real friend ghost scores, friend profiles
+with head-to-head, and an inbox whose actions launch runs directly. Every
+finished run generates a feed post; beating a rival's ghost schedules that
+rival's callout reply ~90s later. Stages 00–05 are verified and committed.
 
 **Left to do on the device** (needs a phone + Expo Go, `npx expo start`):
-- fresh install → onboarding picks 3, shelf fills to 12; check reason lines on
-  the top three and that Browse shows 40 with working filter/search.
-- long-press to pin/unpin; pin a 13th → "SHELF FULL — UNPIN ONE FIRST" toast.
-- the six playable games (STACK, REFLEX, DODGE, SNAP, AIM, GLIDE); non-playable
-  games open a detail screen with a named rival and a "coming soon" play button.
-- carried over: 60fps on DODGE/GLIDE, the live auto-queue, near-miss retry.
+- play a game and beat the rival ghost → your run appears in the feed; wait ~90s
+  and the rival's "CALLED YOU OUT" reply surfaces (feed + inbox) while you're
+  still in the app.
+- walk Duels (real friend stakes), a friend profile (head-to-head), and the
+  inbox (every game action launches straight into a run).
+- carried over: the six playable games, 60fps on DODGE/GLIDE, the shelf/browse,
+  the live auto-queue and near-miss retry.
+
+### What stage 06 delivered
+- **`data/friends.ts`** — 23 deterministic friends, per-(friend,game) bests,
+  seeded head-to-head, mutuals, presence, and the seeded feed/global activity.
+- **`store/slices/social.ts`** — the write side: `runPosts` + revealed
+  `replies` (transient), `onRunCommitted(run)` generating the player's post and
+  scheduling the rival callout on `REPLY_DELAY_MS` (90s). `commitRun` calls it.
+- **`data/social.ts`** — the network-shaped read side: `buildFeed`, `buildDuels`,
+  `buildInbox`, `friendProfile`. Screens call these, never the seed directly, so
+  a server swap replaces this file and leaves the screens untouched.
+- feed/duels/friend/inbox screens rewired off `data/samples.ts` onto the layer.
+  (samples.ts now only backs the game-detail leaderboard + drop poster.)
 
 ### What stage 05 delivered
 - **`data/catalogue.ts`** — all forty games as metadata. Playable games source

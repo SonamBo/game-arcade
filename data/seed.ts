@@ -18,7 +18,7 @@ import { compareRank, nextInQueue } from '@/types/models';
 import type { Game, RankInput } from '@/types/models';
 
 /** Typical score for each game — the baseline a global rival is built around. */
-const BASELINE: Record<string, number> = {
+export const BASELINE: Record<string, number> = {
   stack: 47, reflex: 184, dodge: 2910, count: 31, merge: 512, aim: 68, hold: 9, lanes: 1104,
   flip: 6, orbit: 5, spin: 340, snap: 212, tilt: 880, rush: 96, chain: 14, split: 220,
   echo: 11, pulse: 38, drift: 1520, sort: 44, grid: 19, loop: 7, jump: 61, swap: 29,
@@ -29,7 +29,7 @@ const BASELINE: Record<string, number> = {
 const RIVAL_NAMES = ['RAVI', 'MEHA', 'ARJUN', 'ZAID', 'NEHA', 'KABIR', 'IRA', 'DEV', 'KOJI', 'LARA'];
 
 /** FNV-1a — small, stable string hash for deterministic seeding. */
-function hash(s: string): number {
+export function hash(s: string): number {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) {
     h ^= s.charCodeAt(i);

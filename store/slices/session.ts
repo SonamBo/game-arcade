@@ -57,6 +57,7 @@ export const createSessionSlice: SliceCreator<SessionSlice> = (set, get) => ({
     get().noteRunForStreak(run.endedAt);
     get().awardCoins(run.coins);
     get().noteRun(run);
+    get().onRunCommitted(run); // derive the feed post (+ any callout reply)
     set({ lastRun: run });
   },
 
