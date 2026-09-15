@@ -105,7 +105,7 @@ both shelf and queue, reason lines on top three only, drop poster, family filter
 search, long-press pinning capped at twelve with the refusal toast.
 *Done when:* a fresh install shows a named global rival and a reason line on every top-three row.
 
-**06 · Social layer** — 23 deterministic seeded friends, derived feed, duels with real
+**06 · Social layer** ✓ — 23 deterministic seeded friends, derived feed, duels with real
 ghost scores, friend profiles with head-to-head, inbox actions that launch runs. All
 behind one network-shaped interface so the server swap is a module replacement.
 *Done when:* every finished run generates its post; the callout reply lands minutes later.
