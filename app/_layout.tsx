@@ -2,11 +2,11 @@
 import 'react-native-gesture-handler';
 
 import {
-  Archivo_400Regular,
-  Archivo_600SemiBold,
-  Archivo_800ExtraBold,
+  SourceSerif4_400Regular,
+  SourceSerif4_400Regular_Italic,
+  SourceSerif4_600SemiBold,
   useFonts,
-} from '@expo-google-fonts/archivo';
+} from '@expo-google-fonts/source-serif-4';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -20,9 +20,9 @@ import { C } from '@/theme/tokens';
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    Archivo_400Regular,
-    Archivo_600SemiBold,
-    Archivo_800ExtraBold,
+    SourceSerif4_400Regular,
+    SourceSerif4_600SemiBold,
+    SourceSerif4_400Regular_Italic,
   });
 
   const hydrated = useHydrated();

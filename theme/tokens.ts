@@ -1,95 +1,122 @@
 /**
- * Design tokens — transcribed exactly from the UI build spec §3 and the
- * build brief §4. This file is the only place a colour, a spacing value or a
- * type role is allowed to be defined.
- *
- * Two rules the prototype breaks and this app must not:
- *   - every interactive row and tab is at least MIN_TAP tall
- *   - no readable text is below MIN_TEXT
- * Grow padding, never shrink type.
- *
- * Radius is zero everywhere. There is no rounded corner in this product.
+ * Design tokens — Broadsheet, direction 2a "Arcade Gallery".
+ * Values are literals resolved from the design system's OKLCH ramps.
+ * Radius is small but non-zero. Type is Source Serif 4 throughout,
+ * including UI chrome — there is no sans-serif in this product.
  */
-
-/** Colour. Never write a raw hex in a component. */
 export const C = {
   bg: '#f3f2f2',
   surface: '#eae9e9',
   text: '#201e1d',
 
-  accent: '#ec3013',
-  accentPressed: '#dd2b0f',
-  /** Row background meaning "a rival is involved" or "this is urgent". */
-  accentTint: '#fff2ef',
-  /** Accent-coloured type at 11px and below — flat accent is not readable there. */
-  accentDeep: '#ae1800',
+  /* Cyan — anything actionable right now. */
+  accent: '#0088b0',
+  accentPressed: '#006786',
+  accentTint: '#e9f8ff',
+  /** Accent-coloured type on a tint, and accent text below 15px. */
+  accentDeep: '#004961',
 
-  divider: 'rgba(32,30,29,0.4)',
+  /* Magenta — a rival who just passed you. Nothing else. */
+  urgent: '#d6006c',
+  urgentTint: '#fff1f4',
+  urgentDeep: '#aa0b56',
 
+  /** Used only where a scroll edge must be felt. Never to structure a page. */
+  divider: 'rgba(32,30,29,0.16)',
+
+  n100: '#f8f4f4',
   n200: '#eae7e7',
   n300: '#d7d3d3',
   n400: '#bab6b6',
   n500: '#9b9797',
   n600: '#7d7979',
+  /**
+   * n700 is the floor for secondary text — 5.83:1 on the paper ground.
+   * Every meta line, sub-line and small label uses this. Never n600
+   * (3.84:1) and never n500 (2.9:1) for text: grey-on-grey is the defect
+   * this redesign exists to fix. n300-n600 are for plates, marks,
+   * borders and disabled states only.
+   */
   n700: '#605d5d',
   n800: '#444141',
   n900: '#2d2b2b',
 } as const;
 
-/** Spacing and rule weights. */
+/**
+ * Art plates. A game's plate colour is its family's, and it is always neutral.
+ * The spec names four archetype plates (tower/timing/runner/precision); the
+ * catalogue groups by five Families, so all five are mapped here to a neutral
+ * shade — no colour ever lands on a plate. See theme/plates.ts for the
+ * Family → plate/icon mapping.
+ */
+export const PLATE = {
+  tower: '#d7d3d3',
+  timing: '#eae7e7',
+  runner: '#bab6b6',
+  precision: '#eae9e9',
+  numbers: '#e2dede',
+  memory: '#f0ecec',
+} as const;
+
+/** Spacing — Broadsheet density 1.25x. Do not tighten. */
 export const S = {
-  /** Horizontal inset for every text edge on every screen. */
-  inset: 14,
-  /** Vertical padding inside a list row. */
-  row: 12,
-  /** Grid seam: tile grids are a divider-coloured container with 2px gaps. */
-  gap: 2,
-  /** Section rule — between major sections and above the tab bar. */
-  rule: 2,
-  /** Row rule — between list rows of the same kind. */
-  hairline: 1,
+  /** Horizontal inset for every screen edge. */
+  inset: 20,
+  /** Gap between bands. Replaces the old section rule entirely. */
+  band: 30,
+  /** Gap between tiles in a rail. */
+  rail: 15,
+  /** Padding inside a card. */
+  card: 20,
+  row: 15,
 } as const;
 
-/** Type roles. Archivo throughout: 800 structural, 400/600 prose. */
+export const R = { sm: 1, md: 2, lg: 4, pill: 999 } as const;
+
+/** Elevation — the only depth in the system. Cards md, plates sm. */
+export const E = {
+  sm: { shadowColor: '#2d2b2b', shadowOpacity: 0.14, shadowRadius: 2,
+        shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  md: { shadowColor: '#2d2b2b', shadowOpacity: 0.16, shadowRadius: 10,
+        shadowOffset: { width: 0, height: 3 }, elevation: 3 },
+  lg: { shadowColor: '#2d2b2b', shadowOpacity: 0.22, shadowRadius: 32,
+        shadowOffset: { width: 0, height: 12 }, elevation: 8 },
+} as const;
+
+/** Type roles. Source Serif 4, weights 400 and 600 only. */
 export const T = {
-  /** Results banner only. One per screen. */
-  run: { fontFamily: 'Archivo_800ExtraBold', fontSize: 72, letterSpacing: -2.9 },
-  /** Poster drop, onboarding headline, wallet balance. */
-  display: { fontFamily: 'Archivo_800ExtraBold', fontSize: 42, letterSpacing: -1.5 },
-  /** Duels, Inbox, profile handle, bracket round. */
-  title: { fontFamily: 'Archivo_800ExtraBold', fontSize: 26, letterSpacing: -0.8 },
-  /** Score columns, stat tiles, feed post figures. */
-  figure: { fontFamily: 'Archivo_800ExtraBold', fontSize: 25 },
-  /** Game names, friend names, duel rows. */
-  rowTitle: { fontFamily: 'Archivo_800ExtraBold', fontSize: 17 },
-  /** Explanatory lines, notification text. */
-  body: { fontFamily: 'Archivo_400Regular', fontSize: 13, lineHeight: 20 },
-  /** Sub-lines: "Best 47 · 26 runs". */
-  meta: { fontFamily: 'Archivo_400Regular', fontSize: 11 },
-  /** Section labels, banner kickers, column heads. Uppercase only. */
-  kicker: { fontFamily: 'Archivo_600SemiBold', fontSize: 10, letterSpacing: 1.2 },
+  /** Results banner. One per screen. */
+  run:      { fontFamily: 'SourceSerif4_600SemiBold', fontSize: 68, lineHeight: 70 },
+  /** Hero titles, wallet balance, onboarding headline. */
+  display:  { fontFamily: 'SourceSerif4_600SemiBold', fontSize: 39, lineHeight: 41 },
+  /** Screen titles and hero card titles. */
+  title:    { fontFamily: 'SourceSerif4_600SemiBold', fontSize: 31, lineHeight: 34 },
+  /** Band heads: "Your shelf", "Someone passed you". */
+  band:     { fontFamily: 'SourceSerif4_600SemiBold', fontSize: 20, lineHeight: 26 },
+  /** Score columns and stat figures. */
+  figure:   { fontFamily: 'SourceSerif4_600SemiBold', fontSize: 26, lineHeight: 28 },
+  /** Game names under a plate, row titles. */
+  rowTitle: { fontFamily: 'SourceSerif4_600SemiBold', fontSize: 16, lineHeight: 21 },
+  /** Body copy and explanatory lines. */
+  body:     { fontFamily: 'SourceSerif4_400Regular', fontSize: 15, lineHeight: 24 },
+  /** Sub-lines under a name. The floor for ordinary reading. */
+  meta:     { fontFamily: 'SourceSerif4_400Regular', fontSize: 13, lineHeight: 18 },
+  /** Kicker above a hero title, and tab bar labels. Only these two. */
+  micro:    { fontFamily: 'SourceSerif4_400Regular', fontSize: 12, lineHeight: 16,
+              letterSpacing: 1.2 },
 } as const;
 
-/** Production corrections. These win over the reference prototype. */
 export const MIN_TAP = 48;
-export const MIN_TEXT = 10;
+/** Raised from 10. Nothing outside T.micro may go below this. */
+export const MIN_TEXT = 12;
 
-/** Design canvas the spec is drawn against — Android, 1x dp. */
 export const CANVAS = { width: 412, height: 892 } as const;
 
 /**
- * The accent is reserved for exactly four things:
- *   1. the daily drop poster
- *   2. a personal-best banner
- *   3. the live rivalry number
- *   4. the primary action on screen
- * Nothing else. If a fifth use appears, the screen is wrong.
+ * Cyan is for what you can act on. Magenta is for a rival who just
+ * passed you. Both never appear in the same component.
  */
 export const ACCENT_USES = [
-  'drop-poster',
-  'personal-best',
-  'rivalry-number',
-  'primary-action',
+  'primary-action', 'link', 'live-countdown', 'selected-tab',
 ] as const;
-
-export type AccentUse = (typeof ACCENT_USES)[number];
+export const URGENT_USES = ['rival-passed-you'] as const;

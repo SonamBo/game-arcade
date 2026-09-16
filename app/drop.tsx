@@ -1,48 +1,60 @@
 /**
- * 11 · Daily drop. A full accent field: "DAILY VARIANT · DAY n" with a
- * countdown, the variant name, the rule, and a "PLAY THE VARIANT" button.
- * Then a 2-up strip (FRIENDS PLAYED / NEXT NEW GAME), then the variant
- * leaderboard. The variant rotates at local midnight and pays double coins.
+ * 12 · Daily drop (§6.12). The red field is gone. The variant's art fills the top
+ * at 16:9, dot-screened; the title prints at T.display on paper beneath, with the
+ * live tag carrying the countdown. This screen and Home's hero card read as the
+ * same object at two sizes.
  */
 import { router } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
 
 import { BackBar } from '@/components/chrome/BackBar';
 import { LeaderboardRow } from '@/components/ui/LeaderboardRow';
-import { Button } from '@/components/ui/primitives';
+import { DotScreen } from '@/components/ui/Plate';
+import { FamilyMark } from '@/components/ui/icons';
+import { Button, Tag } from '@/components/ui/primitives';
 import { StatStrip } from '@/components/ui/StatStrip';
-import { rotationCountdown, todaysVariant, variantFriendsPlayed } from '@/data/variant';
+import { metaFor } from '@/data/catalogue';
 import { FRIEND_COUNT } from '@/data/friends';
 import { SAMPLE_LEADERBOARD } from '@/data/samples';
-import { C, S, T } from '@/theme/tokens';
+import { markFor, plateFor } from '@/theme/plates';
+import { rotationCountdown, todaysVariant, variantFriendsPlayed } from '@/data/variant';
+import { C, S } from '@/theme/tokens';
 import { text } from '@/theme/type';
 
 export default function Drop() {
   const v = todaysVariant();
+  const family = metaFor(v.gameId)?.family ?? 'TAP';
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <BackBar label="Daily drop" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 28 }}>
-        <View style={{ backgroundColor: C.accent, paddingHorizontal: S.inset, paddingVertical: 20 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text style={text('kicker', { color: C.bg })}>Daily variant · day {v.day}</Text>
-            <Text style={text('kicker', { color: C.bg, numeric: true })}>{rotationCountdown()}</Text>
-          </View>
-          <Text style={{ fontFamily: T.display.fontFamily, fontSize: 44, letterSpacing: -1.7, color: C.bg, marginTop: 6, lineHeight: 46 }}>
-            {v.name}
-          </Text>
-          <Text style={[text('body', { color: C.bg }), { marginTop: 6, marginBottom: 14 }]}>{v.rule}</Text>
-          <Button label="Play the variant" variant="inverse" onPress={() => router.navigate(`/match/${v.gameId}?variant=1&source=poster`)} />
+        {/* 16:9 art */}
+        <View style={{ width: '100%', aspectRatio: 16 / 9, backgroundColor: plateFor(family), alignItems: 'center', justifyContent: 'center' }}>
+          <DotScreen />
+          <FamilyMark name={markFor(family)} size={96} color={C.text} />
         </View>
 
-        <StatStrip cells={[{ kicker: 'Friends played', value: `${variantFriendsPlayed()} / ${FRIEND_COUNT}` }, { kicker: 'Next new game', value: 'THU' }]} />
+        <View style={{ paddingHorizontal: S.inset, paddingTop: S.rail }}>
+          <Tag kind="live" label={`Live · ${rotationCountdown()}`} />
+          <Text style={[text('display'), { marginTop: 12 }]}>{v.name}</Text>
+          <Text style={[text('body', { color: C.n800 }), { marginTop: 8 }]}>{v.rule}</Text>
+          <View style={{ marginTop: 20 }}>
+            <Button label="Play the variant" variant="primary" onPress={() => router.navigate(`/match/${v.gameId}?variant=1&source=poster`)} />
+          </View>
+        </View>
 
-        {SAMPLE_LEADERBOARD.map((r, i) => (
-          <LeaderboardRow key={r.handle} position={i + 1} handle={r.handle} score={r.score} self={r.self} global={r.global} />
-        ))}
+        <View style={{ paddingTop: S.band }}>
+          <StatStrip cells={[{ kicker: 'Friends played', value: `${variantFriendsPlayed()} / ${FRIEND_COUNT}` }, { kicker: 'Next new game', value: 'Thu' }]} />
+        </View>
 
-        <Text style={[text('body', { color: C.n700 }), { paddingHorizontal: S.inset, paddingTop: 20 }]}>
+        <View style={{ paddingTop: S.band }}>
+          {SAMPLE_LEADERBOARD.map((r, i) => (
+            <LeaderboardRow key={r.handle} position={i + 1} handle={r.handle} score={r.score} self={r.self} global={r.global} />
+          ))}
+        </View>
+
+        <Text style={[text('body', { color: C.n800 }), { paddingHorizontal: S.inset, paddingTop: S.band }]}>
           Variants rotate daily. A new game lands every Thursday and stays for good.
         </Text>
       </ScrollView>

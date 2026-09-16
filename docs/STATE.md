@@ -7,6 +7,30 @@ anything else, it wins.
 
 ## Where we are
 
+**v2 "Arcade Gallery" reskin — code complete on branch `redesign-2a`, VERIFIED
+(tsc + web + android bundle). Not yet merged to main; device pass pending.**
+
+A full re-skin per the Claude Design v2 spec (direction 2a). Source Serif 4
+throughout, paper/ink with cyan = actionable and magenta = a rival who passed
+you, games lead with dot-screened art plates, rails replace the seam grid, no
+rules, small radius + shadows. Behaviour untouched: every route, all state,
+ranking, economy and game rules are exactly as on main (D-018). `tsc` clean;
+`expo export` for web and android both exit 0.
+
+New: `theme/plates.ts`, `components/ui/icons.tsx` (SVG family/tab marks),
+`components/ui/Plate.tsx` (+ newsprint DotScreen), `GameTile`, `Rail`. Retired:
+`ShelfTile`, `EditorialRow`, `Rule`/`VRule`, the old rules. Tab bar is four
+(Shop → coins pill, D-020). Contract/engine logic untouched (engine files got
+palette + token-name changes only).
+
+**To view now:** `npm run serve:web` → http://localhost:3000 (web build), or
+`npm run web`. Merge to main when the look is approved; then the APK CI builds
+the reskinned app.
+
+---
+
+## (pre-reskin) Where we were
+
 **Stage 07 · Meta and polish — VERIFIED (compiles + bundles). Device
 acceptance pass is the remaining gate.**
 

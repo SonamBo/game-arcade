@@ -142,12 +142,12 @@ function TargetTap({ width, height, ghostTarget, carriedScore = 0, onScore, onGh
       ))}
 
       <View style={{ position: 'absolute', top: EDGE, right: EDGE }}>
-        <Text style={text('kicker', { color: missRef.current > 0 ? C.accentDeep : C.n600, numeric: true })}>
+        <Text style={text('micro', { color: missRef.current > 0 ? C.accentDeep : C.n600, numeric: true })}>
           Misses {misses}/{config.maxMisses}
         </Text>
       </View>
 
-      <Text style={[text('kicker', { color: C.n500 }), { position: 'absolute', bottom: 20, alignSelf: 'center' }]}>
+      <Text style={[text('micro', { color: C.n500 }), { position: 'absolute', bottom: 20, alignSelf: 'center' }]}>
         Tap the squares before they vanish
       </Text>
     </View>

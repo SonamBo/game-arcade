@@ -1,9 +1,7 @@
 /**
- * Leaderboard row (§6, §04). Position, name, score. The player's own row is
- * tinted; a global entry is labelled. Scores are tabular so a column of them
- * does not jitter.
- *
- * States: self (tinted) · friend · global.
+ * Leaderboard row (§6.04) — position, name, score. No hairlines, no tint. The
+ * player's own row is marked by a cyan left rail; a global entry is labelled.
+ * Props unchanged.
  */
 import { Text, View } from 'react-native';
 
@@ -24,20 +22,12 @@ export function LeaderboardRow({
   global?: boolean;
 }) {
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        minHeight: MIN_TAP,
-        paddingHorizontal: S.inset,
-        gap: 12,
-        backgroundColor: self ? C.accentTint : C.bg,
-      }}
-    >
-      <Text style={[text('meta', { color: C.n500, numeric: true }), { width: 22 }]}>{position}</Text>
-      <Text style={[text('rowTitle'), { flex: 1 }]}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', minHeight: MIN_TAP, paddingRight: S.inset, gap: 12 }}>
+      <View style={{ width: 3, alignSelf: 'stretch', backgroundColor: self ? C.accent : 'transparent' }} />
+      <Text style={[text('meta', { color: C.n700, numeric: true }), { width: 20 }]}>{position}</Text>
+      <Text style={[text('rowTitle', { color: self ? C.text : C.n800 }), { flex: 1 }]}>
         {handle}
-        {global ? <Text style={text('kicker', { color: C.n500 })}>{'  GLOBAL'}</Text> : null}
+        {global ? <Text style={text('meta', { color: C.n700 })}>{'  global'}</Text> : null}
       </Text>
       <Text style={text('figure', { numeric: true })}>{score.toLocaleString()}</Text>
     </View>

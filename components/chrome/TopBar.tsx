@@ -1,69 +1,53 @@
 /**
- * Top bar (§4) — hub screens only. Height 40. Left: wordmark (taps home). Then
- * coin balance with a 9px accent square (taps Shop). Then STREAK + day count.
- * Then INBOX with a 7px accent dot when unread. Cells separated by 1px vertical
- * rules, closed by the 2px section rule beneath.
- *
- * Coins are global and never labelled per-game.
+ * Top bar (§5.3). Height 64, no rules. Wordmark "Arcade" in T.band taps home.
+ * Coins are one neutral pill with a cyan dot, tapping Shop. The avatar circle
+ * taps the profile and carries a 7px magenta badge when the inbox needs an
+ * answer. Offline shows as a T.meta line under the wordmark — not a coloured
+ * label. Streak and Inbox have left the bar (streak → Profile).
  */
 import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useStore } from '@/store';
+import { Dot } from '@/components/ui/primitives';
 import { useOnline } from '@/lib/useOnline';
-import { C, S } from '@/theme/tokens';
+import { useStore } from '@/store';
+import { C, R, S } from '@/theme/tokens';
 import { text } from '@/theme/type';
-import { AccentDot, AccentSquare, VRule } from '@/components/ui/primitives';
 
-export function TopBar({ unreadInbox = true }: { unreadInbox?: boolean }) {
+export function TopBar() {
   const insets = useSafeAreaInsets();
   const coins = useStore((s) => s.wallet.coins);
-  const streak = useStore((s) => s.streak.days);
+  const needsAnswer = useStore((s) => s.replies.length > 0);
   const online = useOnline();
 
   return (
-    <View style={{ paddingTop: insets.top, backgroundColor: C.bg, borderBottomWidth: S.rule, borderBottomColor: C.divider }}>
-      <View style={{ height: 40, flexDirection: 'row', alignItems: 'center' }}>
-        {/* wordmark */}
-        <Pressable onPress={() => router.navigate('/')} style={{ paddingHorizontal: S.inset, height: '100%', justifyContent: 'center' }}>
-          <Text style={text('kicker', { color: C.text })}>Game Arcade</Text>
+    <View style={{ paddingTop: insets.top, backgroundColor: C.bg }}>
+      <View style={{ minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: S.inset }}>
+        <Pressable onPress={() => router.navigate('/')} style={{ marginRight: 'auto' }}>
+          <Text style={text('band')}>Arcade</Text>
+          {!online ? <Text style={text('meta', { color: C.n700 })}>Offline · syncing</Text> : null}
         </Pressable>
-
-        {/* offline label — the one tracked status the top bar carries (§9) */}
-        {!online ? (
-          <View style={{ paddingHorizontal: 10 }}>
-            <Text style={text('kicker', { color: C.accentDeep })}>Offline · syncing</Text>
-          </View>
-        ) : null}
-
-        <View style={{ flex: 1 }} />
 
         {/* coins → shop */}
-        <VRule />
         <Pressable
           onPress={() => router.navigate('/shop')}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: '100%' }}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: C.n200, paddingHorizontal: 11, paddingVertical: 6, borderRadius: R.md }}
         >
-          <AccentSquare />
-          <Text style={text('meta', { color: C.text, numeric: true })}>{coins.toLocaleString()}</Text>
+          <Dot color={C.accent} />
+          <Text style={[text('body', { numeric: true }), { fontSize: 14 }]}>{coins.toLocaleString()}</Text>
         </Pressable>
 
-        {/* streak */}
-        <VRule />
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, height: '100%' }}>
-          <Text style={text('kicker', { color: C.n600 })}>Streak</Text>
-          <Text style={text('meta', { color: C.text, numeric: true })}>{streak}</Text>
-        </View>
-
-        {/* inbox */}
-        <VRule />
-        <Pressable
-          onPress={() => router.navigate('/inbox')}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: S.inset, height: '100%' }}
-        >
-          <Text style={text('kicker', { color: C.text })}>Inbox</Text>
-          {unreadInbox ? <AccentDot /> : null}
+        {/* avatar → profile, with inbox badge */}
+        <Pressable onPress={() => router.navigate('/me')} hitSlop={8} style={{ width: 32, height: 32 }}>
+          <View style={{ width: 32, height: 32, borderRadius: R.pill, backgroundColor: C.n300, alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={[text('meta', { color: C.n800 }), { fontSize: 14 }]}>S</Text>
+          </View>
+          {needsAnswer ? (
+            <View style={{ position: 'absolute', top: -1, right: -1 }}>
+              <Dot color={C.urgent} />
+            </View>
+          ) : null}
         </Pressable>
       </View>
     </View>

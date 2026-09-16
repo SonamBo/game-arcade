@@ -17,7 +17,7 @@ import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanima
 
 import { useRunLoop } from '@/games/useRunLoop';
 import type { Engine, GameScreenProps } from '@/games/types';
-import { C, S } from '@/theme/tokens';
+import { C } from '@/theme/tokens';
 import { text } from '@/theme/type';
 
 export interface NeedleBandCfg {
@@ -169,7 +169,7 @@ function NeedleBand({ width, height, ghostTarget, carriedScore = 0, onScore, onG
         {/* band */}
         <View style={{ position: 'absolute', left: bandLeft, top: trackY, width: bandW, height: trackH, backgroundColor: C.accentTint, borderLeftWidth: 2, borderRightWidth: 2, borderColor: C.accent }} />
         {/* baseline */}
-        <View style={{ position: 'absolute', left: PAD, right: PAD, top: trackY + trackH, height: S.hairline, backgroundColor: C.divider }} />
+        <View style={{ position: 'absolute', left: PAD, right: PAD, top: trackY + trackH, height: 1, backgroundColor: C.divider }} />
         {/* needle */}
         {ready && !overRef.current ? (
           <Animated.View style={[{ position: 'absolute', top: trackY - 12, width: 3, height: trackH + 24, backgroundColor: C.text, left: 0 }, needleStyle]} />
@@ -177,12 +177,12 @@ function NeedleBand({ width, height, ghostTarget, carriedScore = 0, onScore, onG
 
         {/* readout */}
         <View style={{ position: 'absolute', left: PAD, right: PAD, top: trackY + trackH + 20, flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={text('kicker', { color: C.n600, numeric: true })}>Round {round + 1}/{config.maxRounds}</Text>
-          <Text style={text('kicker', { color: misses > 0 ? C.accentDeep : C.n600, numeric: true })}>Misses {misses}/{config.maxMisses}</Text>
-          <Text style={text('kicker', { color: C.n600, numeric: true })}>{lastMs == null ? '—' : `${lastMs} ms`}</Text>
+          <Text style={text('micro', { color: C.n600, numeric: true })}>Round {round + 1}/{config.maxRounds}</Text>
+          <Text style={text('micro', { color: misses > 0 ? C.accentDeep : C.n600, numeric: true })}>Misses {misses}/{config.maxMisses}</Text>
+          <Text style={text('micro', { color: C.n600, numeric: true })}>{lastMs == null ? '—' : `${lastMs} ms`}</Text>
         </View>
 
-        <Text style={[text('kicker', { color: C.n500 }), { position: 'absolute', bottom: 20, alignSelf: 'center' }]}>
+        <Text style={[text('micro', { color: C.n500 }), { position: 'absolute', bottom: 20, alignSelf: 'center' }]}>
           Tap when the needle crosses the band
         </Text>
       </View>
