@@ -1,72 +1,64 @@
 /**
- * 08 · Duels. "ASYNC · NOBODY WAITS" over a count. One row per duel with a
- * friend's real best as the stake (accent when expiring soon), an accent RACE
- * button that launches the run directly, the live tournament banner, and a link
- * to the inbox. Cold start seeds a named GLOBAL RIVAL, never a fake friend.
+ * 07 · Duels (§6.07). "Duels" in T.title, sentence case. Two bands separated by
+ * space — "Your turn" and "Waiting on them". Each row: the opponent's avatar
+ * circle, handle, the game as a meta line, and a cyan Race button. Waiting-on-you
+ * rows carry the magenta dot. No reversed ink rows.
  */
 import { router } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { TopBar } from '@/components/chrome/TopBar';
-import { Button, Rule } from '@/components/ui/primitives';
+import { BandHeader, Button, Dot } from '@/components/ui/primitives';
 import { buildDuels } from '@/data/social';
+import type { DuelView } from '@/data/social';
 import { useStore } from '@/store';
-import { C, S, T } from '@/theme/tokens';
+import { C, R, S } from '@/theme/tokens';
 import { text } from '@/theme/type';
 
 export default function Duels() {
   const progress = useStore((s) => s.progress);
   const duels = buildDuels(progress);
+  const yourTurn = duels.filter((d) => d.soon);
+  const waiting = duels.filter((d) => !d.soon);
+
+  const row = (d: DuelView) => (
+    <View key={d.gameId} style={{ flexDirection: 'row', alignItems: 'center', minHeight: 64, paddingHorizontal: S.inset, paddingVertical: S.row, gap: S.rail }}>
+      <Pressable onPress={() => router.navigate(`/friend/${d.handle.toLowerCase()}`)}>
+        <View style={{ width: 40, height: 40, borderRadius: R.pill, backgroundColor: C.n300, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={text('rowTitle', { color: C.n800 })}>{d.handle[0]}</Text>
+        </View>
+      </Pressable>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Text style={text('rowTitle')}>{d.handle} · {d.name}</Text>
+          {d.soon ? <Dot color={C.urgent} size={6} /> : null}
+        </View>
+        <Text style={[text('meta', { color: C.n700 }), { marginTop: 2 }]}>{d.stake}</Text>
+      </View>
+      <Button label="Race" variant="primary" onPress={() => router.navigate(`/match/${d.gameId}?source=duel`)} />
+    </View>
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <TopBar />
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={{ paddingHorizontal: S.inset, paddingTop: 18, paddingBottom: 10 }}>
-          <Text style={text('kicker', { color: C.n600 })}>Async · nobody waits</Text>
-          <Text style={{ fontFamily: T.title.fontFamily, fontSize: 26, color: C.text, letterSpacing: -0.8, marginTop: 2 }}>
-            {duels.length} ghosts waiting
-          </Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+        <View style={{ paddingHorizontal: S.inset, paddingTop: S.rail }}>
+          <Text style={text('title')}>Duels</Text>
+          <Text style={[text('meta', { color: C.n700 }), { marginTop: 2 }]}>Async · nobody waits</Text>
         </View>
-        <Rule weight="section" />
 
-        {duels.map((d) => (
-          <View key={d.gameId}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                minHeight: 56,
-                paddingHorizontal: S.inset,
-                paddingVertical: 10,
-                gap: 12,
-                backgroundColor: d.soon ? C.accentTint : C.bg,
-              }}
-            >
-              <Pressable onPress={() => router.navigate(`/friend/${d.handle.toLowerCase()}`)} style={{ width: 44, height: 44, backgroundColor: C.text, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={text('rowTitle', { color: C.bg })}>{d.handle[0]}</Text>
-              </Pressable>
-              <View style={{ flex: 1 }}>
-                <Text style={text('rowTitle')}>
-                  {d.handle} · {d.name}
-                </Text>
-                <Text style={[text('meta', { color: d.soon ? C.accentDeep : C.n600 }), { marginTop: 2 }]}>{d.stake}</Text>
-              </View>
-              <Button label="Race" variant="accent" onPress={() => router.navigate(`/match/${d.gameId}?source=duel`)} />
-            </View>
-            <Rule />
-          </View>
-        ))}
+        {yourTurn.length > 0 ? (<><BandHeader kicker="Your turn" />{yourTurn.map(row)}</>) : null}
+        <BandHeader kicker="Waiting on them" />
+        {waiting.map(row)}
 
-        <Pressable onPress={() => router.navigate('/bracket')} style={{ backgroundColor: C.accent, paddingHorizontal: S.inset, paddingVertical: 18, marginTop: 12 }}>
-          <Text style={text('kicker', { color: C.bg })}>Saturday Cup · Round 2</Text>
-          <Text style={{ fontFamily: T.title.fontFamily, fontSize: 26, color: C.bg, letterSpacing: -0.8, marginTop: 4 }}>
-            You're in the last eight →
-          </Text>
+        <Pressable onPress={() => router.navigate('/bracket')} style={{ marginHorizontal: S.inset, marginTop: S.band, backgroundColor: C.surface, borderRadius: R.lg, padding: S.card }}>
+          <Text style={text('micro', { color: C.accentDeep, uppercase: true })}>Saturday Cup · round 2</Text>
+          <Text style={[text('title'), { marginTop: 6 }]}>You're in the last eight</Text>
         </Pressable>
 
-        <Pressable onPress={() => router.navigate('/inbox')} style={{ paddingHorizontal: S.inset, paddingVertical: 16 }}>
-          <Text style={text('kicker', { color: C.accentDeep })}>Challenges in your inbox →</Text>
+        <Pressable onPress={() => router.navigate('/inbox')} style={{ paddingHorizontal: S.inset, paddingVertical: S.band }}>
+          <Text style={text('rowTitle', { color: C.accent })}>Challenges in your inbox →</Text>
         </Pressable>
       </ScrollView>
     </View>

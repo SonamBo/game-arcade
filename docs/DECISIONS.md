@@ -118,6 +118,34 @@ values created before it (lane-runner uses an `over` shared value for collision
 stop and computes score from `distance`, never `loop.score`). Documented so the
 five future engines don't rediscover it.
 
+### D-018 · v2 "Arcade Gallery" reskin on a branch
+**Reskin (branch `redesign-2a`).** The v2 UI spec (Claude Design, direction 2a
+"Arcade Gallery") is a **skin**: Source Serif 4 throughout, paper/ink neutrals,
+cyan = actionable, magenta = a rival who passed you, games lead with art plates,
+no rules (space separates bands), small non-zero radius + subtle shadows. Every
+route, all state, ranking, economy and game rules are untouched — only
+`theme/`, `components/` and screen presentation change. Done on a branch so
+`main` (and its working APK CI) stays stable until reviewed, then merges.
+
+### D-019 · Five family plates, not four
+**Reskin.** The spec names four archetype plates (tower/timing/runner/precision);
+the catalogue groups games by five Families (TAP/SWIPE/TIMING/NUMBERS/MEMORY).
+Mapped all five to neutral PLATE shades + five SVG family marks
+(`theme/plates.ts`, `components/ui/icons.tsx`) so every game has a plate. No
+colour ever lands on a plate, per the direction.
+
+### D-020 · Tab bar drops to four; Shop moves to the top bar
+**Reskin (§5.8).** Tabs are Home · Duels · Feed · Me. Shop is still a route but
+is reached from the coins pill in the top bar (`href: null` hides it from the
+bar). Routing is unchanged — only its presentation as a tab.
+
+### D-021 · Button variant names kept as aliases
+**Reskin.** §8 says keep prop signatures. Button's new looks are primary /
+secondary / ghost, but the old `accent`/`inverse`/`outlined` values still work
+(accent→primary, outlined→secondary, inverse→primary), so no caller changed its
+variant string. Icons/plates are additive optional props on IndexRow, FeedPost,
+QueueRing, PosterBand — also non-breaking.
+
 ### D-008 · The rails screen is disposable
 **Stage 00.** `app/index.tsx` is a diagnostic, not a product screen, and stage
 01 deletes it. It is written in the product's visual grammar anyway so that a

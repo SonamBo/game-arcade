@@ -20,7 +20,7 @@ import type { SharedValue } from 'react-native-reanimated';
 
 import { useRunLoop } from '@/games/useRunLoop';
 import type { Engine, GameScreenProps } from '@/games/types';
-import { C, S } from '@/theme/tokens';
+import { C } from '@/theme/tokens';
 import { text } from '@/theme/type';
 
 export interface LaneRunnerCfg {
@@ -174,7 +174,7 @@ function LaneRunner({ width, height, ghostTarget, carriedScore = 0, onScore, onG
       <View style={{ height: playH, overflow: 'hidden' }}>
         {/* lane seams */}
         {Array.from({ length: config.lanes - 1 }, (_, i) => (
-          <View key={i} style={{ position: 'absolute', top: 0, bottom: 0, left: (i + 1) * laneW, width: S.hairline, backgroundColor: C.divider }} />
+          <View key={i} style={{ position: 'absolute', top: 0, bottom: 0, left: (i + 1) * laneW, width: 1, backgroundColor: C.divider }} />
         ))}
 
         {/* obstacles */}
@@ -194,7 +194,7 @@ function LaneRunner({ width, height, ghostTarget, carriedScore = 0, onScore, onG
       </View>
 
       {/* lane control — button-first (D-007) */}
-      <View style={{ flexDirection: 'row', gap: S.gap, backgroundColor: C.divider, height: BUTTON_H }}>
+      <View style={{ flexDirection: 'row', gap: 2, backgroundColor: C.divider, height: BUTTON_H }}>
         <LaneButton label="← Left" onPress={() => move(-1)} />
         <LaneButton label="Right →" onPress={() => move(1)} />
       </View>
@@ -217,7 +217,7 @@ function LaneButton({ label, onPress }: { label: string; onPress: () => void }) 
       onPress={onPress}
       style={({ pressed }) => ({ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? C.surface : C.bg })}
     >
-      <Text style={text('kicker', { color: C.text })}>{label}</Text>
+      <Text style={text('micro', { color: C.text })}>{label}</Text>
     </Pressable>
   );
 }

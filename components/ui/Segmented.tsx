@@ -1,9 +1,9 @@
 /**
- * A two-or-more-way switch used by the feed (FRIENDS / GLOBAL), the duel list,
- * and the detail leaderboard (FRIENDS / GLOBAL / THIS WEEK). The selected chip
- * is inverted to ink; a right-aligned population note is optional.
+ * Segmented control — family filter and the feed switch. Cyan selection: the
+ * selected label is cyan with a 2px cyan underline; the rest sit at the n700
+ * floor. No ink fill, no rules. Props unchanged.
  */
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { C, MIN_TAP, S } from '@/theme/tokens';
 import { text } from '@/theme/type';
@@ -20,34 +20,23 @@ export function Segmented({
   note?: string;
 }) {
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderBottomWidth: S.rule,
-        borderBottomColor: C.divider,
-        paddingRight: S.inset,
-      }}
-    >
-      {options.map((opt) => {
-        const selected = opt === value;
-        return (
-          <Pressable
-            key={opt}
-            onPress={() => onChange(opt)}
-            style={{
-              minHeight: MIN_TAP,
-              justifyContent: 'center',
-              paddingHorizontal: S.inset,
-              backgroundColor: selected ? C.text : 'transparent',
-            }}
-          >
-            <Text style={text('kicker', { color: selected ? C.bg : C.n600 })}>{opt}</Text>
-          </Pressable>
-        );
-      })}
-      <View style={{ flex: 1 }} />
-      {note ? <Text style={text('meta', { color: C.n500, numeric: true })}>{note}</Text> : null}
+    <View style={{ flexDirection: 'row', alignItems: 'center', paddingRight: S.inset }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: S.inset, gap: 4, alignItems: 'center' }} style={{ flex: 1 }}>
+        {options.map((opt) => {
+          const selected = opt === value;
+          return (
+            <Pressable
+              key={opt}
+              onPress={() => onChange(opt)}
+              style={{ minHeight: MIN_TAP, justifyContent: 'center', paddingHorizontal: 10 }}
+            >
+              <Text style={text('rowTitle', { color: selected ? C.accent : C.n700 })}>{opt}</Text>
+              <View style={{ height: 2, marginTop: 4, backgroundColor: selected ? C.accent : 'transparent' }} />
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+      {note ? <Text style={text('meta', { color: C.n700, numeric: true })}>{note}</Text> : null}
     </View>
   );
 }

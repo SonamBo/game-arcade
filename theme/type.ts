@@ -1,18 +1,21 @@
 /**
  * Typed helpers over the tokens. Components import from here rather than
- * hand-assembling text styles, so the two production corrections and the
- * tabular-numerals rule are impossible to forget.
+ * hand-assembling text styles, so the tap floor and the tabular-numerals rule
+ * are impossible to forget.
+ *
+ * Direction 2a: Source Serif 4 throughout, sentence case everywhere. Uppercase
+ * is opt-in and used by exactly two callers — the hero kicker and the tab bar.
  */
 import type { TextStyle, ViewStyle } from 'react-native';
-import { C, MIN_TAP, MIN_TEXT, S, T } from './tokens';
+import { C, MIN_TEXT, MIN_TAP, S, T } from './tokens';
 
 export type TypeRole = keyof typeof T;
 
-/** The Archivo faces loaded at the root layout. */
+/** The Source Serif 4 faces loaded at the root layout. */
 export const FONT_FAMILIES = [
-  'Archivo_400Regular',
-  'Archivo_600SemiBold',
-  'Archivo_800ExtraBold',
+  'SourceSerif4_400Regular',
+  'SourceSerif4_600SemiBold',
+  'SourceSerif4_400Regular_Italic',
 ] as const;
 
 /**
@@ -20,7 +23,7 @@ export const FONT_FAMILIES = [
  *
  * Scores sit in columns and must not jitter as they tick, so anything that can
  * hold a number gets tabular figures. Pass `numeric` explicitly for body or
- * meta text that shows a figure.
+ * meta text that shows a figure. `uppercase` is opt-in and never automatic.
  */
 export function text(
   role: TypeRole,
@@ -39,18 +42,17 @@ export function text(
     ...base,
     color: opts.color ?? C.text,
     ...(numeric ? { fontVariant: ['tabular-nums' as const] } : null),
-    ...(opts.uppercase || role === 'kicker'
-      ? { textTransform: 'uppercase' as const }
-      : null),
+    ...(opts.uppercase ? { textTransform: 'uppercase' as const } : null),
   };
 }
 
 /**
- * A kicker's colour depends on where it sits: accent type at 11px and below is
- * not readable flat, so it uses accent-deep.
+ * The 12px micro label — the hero kicker and tab labels. Sentence case unless
+ * the caller opts into uppercase. Neutral tone uses the n700 text floor; accent
+ * tone is for a live/actionable label.
  */
 export function kicker(tone: 'neutral' | 'accent' = 'neutral'): TextStyle {
-  return text('kicker', { color: tone === 'accent' ? C.accentDeep : C.n600 });
+  return text('micro', { color: tone === 'accent' ? C.accentDeep : C.n700 });
 }
 
 /**
@@ -67,17 +69,13 @@ export function tappableRow(extra: ViewStyle = {}): ViewStyle {
   };
 }
 
-/** Row rule between list items of the same kind. */
-export const rowRule: ViewStyle = {
-  borderBottomWidth: S.hairline,
-  borderBottomColor: C.divider,
-};
-
-/** Section rule between major sections and above the tab bar. */
-export const sectionRule: ViewStyle = {
-  borderBottomWidth: S.rule,
-  borderBottomColor: C.divider,
-};
+/**
+ * A band head's container style. Sections are separated by empty space, not
+ * rules: S.band above, S.rail below, inset on the sides.
+ */
+export function band(): ViewStyle {
+  return { paddingHorizontal: S.inset, paddingTop: S.band, paddingBottom: S.rail };
+}
 
 /** Full-bleed screen ground. Never a gradient, never a second background. */
 export const screen: ViewStyle = {

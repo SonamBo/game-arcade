@@ -141,7 +141,7 @@ export default function Match() {
             <Text style={{ fontFamily: T.display.fontFamily, fontSize: 42, color: C.n400 }}>
               {gameId.toUpperCase()}
             </Text>
-            <Text style={[text('kicker', { color: C.n500 }), { marginTop: 8, textAlign: 'center' }]}>
+            <Text style={[text('micro', { color: C.n700 }), { marginTop: 8, textAlign: 'center' }]}>
               This one arrives with the engines · stage 04
             </Text>
           </Pressable>

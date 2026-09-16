@@ -1,15 +1,13 @@
 /**
- * Ghost band (§6, §04). On accent tint: the rival's name and score, a context
- * line, and an accent RACE button. The header ticker is what sells the race,
- * so this band is where a rivalry lives on the detail screen.
- *
- * States: rival ahead · player ahead · global rival (labelled, never faked).
+ * Ghost band (§6.04) — the rivalry on the detail screen. No tint: the rival's
+ * name and number sit on paper, in magenta only when they are ahead of you
+ * (a rival who passed you). A cyan Race button. Props unchanged.
  */
 import { Text, View } from 'react-native';
 
-import { C, S } from '@/theme/tokens';
-import { text } from '@/theme/type';
 import { Button } from './primitives';
+import { C, S, T } from '@/theme/tokens';
+import { text } from '@/theme/type';
 
 export type GhostState = 'rival-ahead' | 'player-ahead' | 'global-rival';
 
@@ -28,35 +26,29 @@ export function GhostBand({
   recorded?: string;
   onRace?: () => void;
 }) {
-  const label =
-    state === 'global-rival' ? 'GLOBAL RIVAL' : state === 'player-ahead' ? "YOU'RE AHEAD" : 'RIVAL AHEAD';
+  const ahead = state === 'rival-ahead';
+  const numColor = ahead ? C.urgentDeep : C.text;
+  const label = state === 'global-rival' ? 'Global rival' : ahead ? `${handle} passed you` : "You're ahead";
   const context =
     state === 'player-ahead'
-      ? `You lead. Recorded ${recorded}. Their ghost races you live.`
+      ? `You lead. Recorded ${recorded}, their ghost races you live.`
       : `Recorded ${recorded}. Their ghost races you live.`;
 
   return (
-    <View style={{ backgroundColor: C.accentTint, paddingHorizontal: S.inset, paddingVertical: 14 }}>
-      <Text style={text('kicker', { color: C.accentDeep })}>{label}</Text>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginTop: 6,
-          gap: 12,
-        }}
-      >
+    <View style={{ paddingHorizontal: S.inset, paddingTop: S.band }}>
+      <Text style={text('meta', { color: ahead ? C.urgentDeep : C.n700 })}>{label}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12, marginTop: 6 }}>
         <View style={{ flex: 1 }}>
           <Text style={text('rowTitle')}>
-            {handle}{' '}
-            <Text style={text('rowTitle', { color: C.accentDeep, numeric: true })}>
-              {score.toLocaleString()} {unit}
+            {handle}{'  '}
+            <Text style={{ fontFamily: T.figure.fontFamily, fontSize: T.figure.fontSize, color: numColor, fontVariant: ['tabular-nums'] }}>
+              {score.toLocaleString()}
             </Text>
+            <Text style={text('meta', { color: C.n700 })}>{`  ${unit}`}</Text>
           </Text>
-          <Text style={[text('meta', { color: C.n700 }), { marginTop: 2 }]}>{context}</Text>
+          <Text style={[text('meta', { color: C.n700 }), { marginTop: 4 }]}>{context}</Text>
         </View>
-        <Button label="Race it" variant="accent" onPress={onRace} />
+        <Button label="Race" variant="primary" onPress={onRace} />
       </View>
     </View>
   );
